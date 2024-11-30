@@ -3,4 +3,4 @@ A python package for local communication with Viessmann OneBase devices over CAN
 
 
 # Documentation
-All documentation and useful info is in the [Wiki](https://github.com/Philip-Wiege/ViessmannOneBaseLocal/wiki)
+All documentation and useful info is in the [Wiki](https://github.com/Philip-Wiege/ViessmannOneBaseLocal/wiki/Wiki)
