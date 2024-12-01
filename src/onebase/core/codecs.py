@@ -1,49 +1,29 @@
-"""
-   Copyright 2023 abnoname
-   
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-"""
-
 import udsoncan 
 from typing import Optional, Any
 import datetime
 import json
 import open3e.Open3Eenums
 
-flag_rawmode = True
-flag_dev = "vcal"
-
 class RawCodec(udsoncan.DidCodec):
-    def __init__(self, string_len: int, idStr: str):
-        self.string_len = string_len
-        self.id = idStr
+    def __init__(self, paramNumBytes: int, paramDIDName: str):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
 
-    def encode(self, string_ascii: Any) -> bytes:
-        string_bin = bytes.fromhex(string_ascii)
-        if len(string_bin) != self.string_len:
-            raise ValueError('String must be %d long' % self.string_len)
-        return string_bin
+    def encode(self, paramHexString: Any, paramRaw=False) -> bytes:
+        _encodedBytes = bytes.fromhex(paramHexString)
+        if len(_encodedBytes) != self._numBytes:
+            raise ValueError('String must be %d long' % self._numBytes)
+        return _encodedBytes
 
-    def decode(self, string_bin: bytes) -> Any:
-        string_ascii = string_bin.hex()
-        return string_ascii
+    def decode(self, _encodedBytes: bytes, paramRaw=False) -> Any:
+        _decodedHexString = _encodedBytes.hex()
+        return _decodedHexString
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "id": self._DIDName, "args": {}})
 
-    def __len__(self) -> int:
-        return self.string_len
-
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
 class O3EInt(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, byte_width: int, scale: float = 1.0, offset: int = 0, signed=False):
@@ -163,7 +143,6 @@ class O3EUtf8(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-
 class O3ESoftVers(udsoncan.DidCodec):  # also working with hardware version
     def __init__(self, string_len: int, idStr: str):
         self.string_len = string_len
@@ -212,7 +191,7 @@ class O3EMacAddr(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EIp4Addr(udsoncan.DidCodec):  # also working with Ip6
+class O3EIp4Addr(udsoncan.DidCodec):  # also working with IPV6
     def __init__(self, string_len: int, idStr: str):
         self.string_len = string_len
         self.id = idStr
@@ -342,7 +321,6 @@ class O3EUtc(udsoncan.DidCodec):
 
     def __len__(self) -> int:
         return self.string_len
-
 
 class O3EEnum(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, listStr:str):
