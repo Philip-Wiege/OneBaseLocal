@@ -54,7 +54,7 @@ dev = ["pytest", "pytest-cov", "black==21.10b0"]
 [project.urls]
 Homepage = "https://github.com/Philip-Wiege/viessmannonebaselocal"
 documentation = "https://github.com/Philip-Wiege/ViessmannOneBaseLocal/wiki"
-repository = ""https://github.com/Philip-Wiege/viessmannonebaselocal"
+repository = "https://github.com/Philip-Wiege/viessmannonebaselocal"
 
 #[project.scripts]
 
