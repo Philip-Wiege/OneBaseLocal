@@ -341,7 +341,7 @@ class CodecEnum(udsoncan.DidCodec):
             input = string_ascii
         else:
             raise ValueError("Ivalid input for OEEnum")
-        for key, value in enumerations.E3Enums[self.listStr].items():
+        for key, value in E3Enums[self.listStr].items():
             if value.lower() == input.lower():
                 string_bin = key.to_bytes(length=self.string_len,byteorder="little",signed=False)
                 return string_bin
@@ -352,7 +352,7 @@ class CodecEnum(udsoncan.DidCodec):
             return CodecRaw.decode(self, string_bin)
         try:
             val = int.from_bytes(string_bin[0:self.string_len], byteorder="little", signed=False)
-            txt = enumerations.E3Enums[self.listStr][val]
+            txt = E3Enums[self.listStr][val]
             return {"ID": val,
                     "Text": txt }
         except:
