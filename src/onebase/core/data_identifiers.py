@@ -1,24 +1,5 @@
-"""
-  Copyright 2023 abnoname
-  
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you 05_may not use this file except in compliance with the License.
-  You 05_may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-"""
-
-import open3e.Open3Ecodecs
-from open3e.Open3Ecodecs import *
-
-# Datapoints sourced from ViGuide Demo Mode:
-# https://viguide.viessmann.com/installations/10000017?gatewaySerial=7736170-gw-serial-17&deviceSerial=7720533-device-serial
+import codecs
+from codecs import *
 
 dataIdentifiers = {
     "name": "general", 

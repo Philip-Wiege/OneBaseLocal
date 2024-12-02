@@ -1,74 +1,77 @@
-import udsoncan 
+import udsoncan
 from typing import Optional, Any
 import datetime
 import json
-import open3e.Open3Eenums
+import enumerations
 
-class RawCodec(udsoncan.DidCodec):
-    def __init__(self, paramNumBytes: int, paramDIDName: str):
+class CodecRaw(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName:str):
         self._numBytes = paramNumBytes
         self._DIDName = paramDIDName
 
-    def encode(self, paramHexString: Any, paramRaw=False) -> bytes:
+    def encode(self, paramHexString: Any) -> bytes:
         _encodedBytes = bytes.fromhex(paramHexString)
         if len(_encodedBytes) != self._numBytes:
             raise ValueError('String must be %d long' % self._numBytes)
         return _encodedBytes
 
-    def decode(self, _encodedBytes: bytes, paramRaw=False) -> Any:
-        _decodedHexString = _encodedBytes.hex()
+    def decode(self, paramEncodedBytes: bytes) -> Any:
+        _decodedHexString = paramEncodedBytes.hex()
         return _decodedHexString
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self._numBytes, "id": self._DIDName, "args": {}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {}})
 
     def getNumBytes(self) -> int:
         return self._numBytes
 
-class O3EInt(udsoncan.DidCodec):
-    def __init__(self, string_len: int, idStr: str, byte_width: int, scale: float = 1.0, offset: int = 0, signed=False):
-        self.string_len = string_len
-        self.byte_width = byte_width
-        self.id = idStr
-        self.scale = scale
-        self.offset = offset
-        self.signed = signed
+class CodecInt(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName:str, paramByteWidth: int, paramByteOrder="little", paramScale: float = 1.0, paramOffset: int = 0, paramSigned=False):
+        self._numBytes = paramNumBytes
+        self._byteWidth = paramByteWidth
+        self._byteOrder = paramByteOrder
+        self._DIDName = paramDIDName
+        self._scale = paramScale
+        self._offset = paramOffset
+        self._signed = paramSigned
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
+    def encode(self, string_ascii: Any, paramRaw=False) -> bytes:        
+        if(paramRaw):
             return RawCodec.encode(self, string_ascii)
         else:
-            if (self.offset != 0):
-                raise("O3EInt.encode(): offset!=0 not implemented yet") 
-            val = round(eval(str(string_ascii))*self.scale)    # convert submitted data to numeric value and apply scaling factor
-            string_bin = val.to_bytes(length=self.byte_width,byteorder="little",signed=self.signed)
-            return string_bin
+            if (self._offset != 0):
+                raise NotImplementedError("O3EInt.encode(): offset!=0 not implemented yet")
+            else:
+                val = round(eval(str(string_ascii))*self._scale)    # convert submitted data to numeric value and apply scaling factor
+                string_bin = val.to_bytes(length=self._byteWidth, byteorder=self._byteOrder, signed=self._signed)
+                return string_bin
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
-        val = int.from_bytes(string_bin[self.offset:self.offset + self.byte_width], byteorder="little", signed=self.signed)
-        return float(val) / self.scale
+    def decode(self, paramEncodedBytes: bytes, paramRaw=False) -> Any:
+        if(paramRaw):
+            return RawCodec.decode(self, paramEncodedBytes)
+        else:
+            val = int.from_bytes(paramEncodedBytes[self._offset:self._offset + self._byteWidth], byteorder=self._byteOrder, signed=self._signed)
+            return float(val) / self.scale
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {"scale":self.scale, "signed":self.signed, "offset":self.offset}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"scale":self._scale, "signed":self._signed, "offset":self._offset}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
-class O3EInt8(O3EInt):
-    def __init__(self, string_len: int, idStr: str, scale: float = 1.0, offset: int = 0, signed=False):
-        O3EInt.__init__(self, string_len, idStr, byte_width=1, scale=scale, offset=offset, signed=signed)
+class CodecInt8(CodecInt):
+    def __init__(self, paramNumBytes:int, paramDIDName:str, paramByteOrder="little", paramScale:float = 1.0, paramOffset:int = 0, paramSigned=False):
+        CodecInt.__init__(self, paramNumBytes=paramNumBytes, paramDIDName=paramDIDName, paramByteWidth=1, paramByteOrder=paramByteOrder, paramScale=paramScale, paramOffset=paramOffset, paramSigned=paramSigned)
 
-class O3EInt16(O3EInt):
-    def __init__(self, string_len: int, idStr: str, scale: float = 10.0, offset: int = 0, signed=False):
-        O3EInt.__init__(self, string_len, idStr, byte_width=2, scale=scale, offset=offset, signed=signed)
+class CodecInt16(CodecInt):
+    def __init__(self, paramNumBytes:int, paramDIDName:str, paramByteOrder="little", paramScale:float = 1.0, paramOffset:int = 0, paramSigned=False):
+        CodecInt.__init__(self, paramNumBytes=paramNumBytes, paramDIDName=paramDIDName, paramByteWidth=2, paramByteOrder=paramByteOrder, paramScale=paramScale, paramOffset=paramOffset, paramSigned=paramSigned)
 
-class O3EInt32(O3EInt):
-    def __init__(self, string_len: int, idStr: str, scale: float = 1.0, offset: int = 0, signed=False):
-        O3EInt.__init__(self, string_len, idStr, byte_width=4, scale=scale, offset=offset, signed=signed)
+class CodecInt32(CodecInt):
+    def __init__(self, paramNumBytes:int, paramDIDName:str, paramByteOrder="little", paramScale:float = 1.0, paramOffset:int = 0, paramSigned=False):
+        CodecInt.__init__(self, paramNumBytes=paramNumBytes, paramDIDName=paramDIDName, paramByteWidth=4, paramByteOrder=paramByteOrder, paramScale=paramScale, paramOffset=paramOffset, paramSigned=paramSigned)
 
-class O3EByteVal(udsoncan.DidCodec):
+class CodecByte(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, offset: int = 0):
         self.string_len = string_len
         self.id = idStr
@@ -91,7 +94,7 @@ class O3EByteVal(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EBool(udsoncan.DidCodec):
+class CodecBool(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, offset: int = 0):
         self.string_len = string_len
         self.id = idStr
@@ -120,7 +123,7 @@ class O3EBool(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EUtf8(udsoncan.DidCodec):
+class CodecUTF8(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, offset: int = 0):
         self.string_len = string_len
         self.id = idStr
@@ -143,7 +146,7 @@ class O3EUtf8(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3ESoftVers(udsoncan.DidCodec):  # also working with hardware version
+class CodecHardwareSoftwareVersion(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str):
         self.string_len = string_len
         self.id = idStr
@@ -167,8 +170,8 @@ class O3ESoftVers(udsoncan.DidCodec):  # also working with hardware version
     def __len__(self) -> int:
         return self.string_len
 
-class O3EMacAddr(udsoncan.DidCodec):
-    def __init__(self, string_len: int, idStr: str): #string_bin = bytes.fromhex(string_ascii)
+class CodecMACAddress(udsoncan.DidCodec):
+    def __init__(self, string_len: int, idStr: str):
         self.string_len = string_len
         self.id = idStr
 
@@ -191,7 +194,7 @@ class O3EMacAddr(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EIp4Addr(udsoncan.DidCodec):  # also working with IPV6
+class CodecIp4Addr(udsoncan.DidCodec):  # also working with IPV6
     def __init__(self, string_len: int, idStr: str):
         self.string_len = string_len
         self.id = idStr
@@ -215,7 +218,7 @@ class O3EIp4Addr(udsoncan.DidCodec):  # also working with IPV6
     def __len__(self) -> int:
         return self.string_len
 
-class O3ESdate(udsoncan.DidCodec):
+class CodecSDate(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str):
         self.string_len = string_len
         self.id = idStr
@@ -236,7 +239,7 @@ class O3ESdate(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EDateTime(udsoncan.DidCodec):
+class CodecDateTime(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, timeformat: str="VM"):
         self.string_len = string_len
         self.id = idStr
@@ -272,7 +275,7 @@ class O3EDateTime(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EStime(udsoncan.DidCodec):
+class CodecSTime(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str):
         self.string_len = string_len
         self.id = idStr
@@ -299,7 +302,7 @@ class O3EStime(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EUtc(udsoncan.DidCodec):
+class CodecUTC(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, offset: int = 0):
         self.string_len = string_len
         self.id = idStr
@@ -322,7 +325,7 @@ class O3EUtc(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EEnum(udsoncan.DidCodec):
+class CodecEnum(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, listStr:str):
         self.string_len = string_len
         self.id = idStr
@@ -362,7 +365,7 @@ class O3EEnum(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
        
-class O3EList(udsoncan.DidCodec):
+class CodecList(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, subTypes: list, arraylength: int=0):
         self.string_len = string_len
         self.id = idStr
@@ -432,7 +435,7 @@ class O3EList(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EArray(udsoncan.DidCodec):
+class CodecArray(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, subTypes: list, arraylength: int=0):
         self.string_len = string_len
         self.id = idStr
@@ -466,7 +469,7 @@ class O3EArray(udsoncan.DidCodec):
     def __len__(self) -> int:
         return self.string_len
 
-class O3EComplexType(udsoncan.DidCodec):
+class CodecComplexType(udsoncan.DidCodec):
     def __init__(self, string_len: int, idStr: str, subTypes : list):
         self.string_len = string_len
         self.id = idStr
