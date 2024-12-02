@@ -37,7 +37,7 @@ class CodecInt(udsoncan.DidCodec):
 
     def encode(self, string_ascii: Any, paramRaw=False) -> bytes:        
         if(paramRaw):
-            return RawCodec.encode(self, string_ascii)
+            return CodecRaw.encode(self, string_ascii)
         else:
             if (self._offset != 0):
                 raise NotImplementedError("O3EInt.encode(): offset!=0 not implemented yet")
@@ -48,7 +48,7 @@ class CodecInt(udsoncan.DidCodec):
 
     def decode(self, paramEncodedBytes: bytes, paramRaw=False) -> Any:
         if(paramRaw):
-            return RawCodec.decode(self, paramEncodedBytes)
+            return CodecRaw.decode(self, paramEncodedBytes)
         else:
             val = int.from_bytes(paramEncodedBytes[self._offset:self._offset + self._byteWidth], byteorder=self._byteOrder, signed=self._signed)
             return float(val) / self.scale
@@ -77,15 +77,15 @@ class CodecByte(udsoncan.DidCodec):
         self.id = idStr
         self.offset = offset
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         string_bin = string_ascii.to_bytes(length=self.string_len,byteorder="little",signed=False)
         return string_bin
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         return int.from_bytes(string_bin[self.offset:self.offset+self.string_len], byteorder="little", signed=False)
 
     def getCodecInfo(self):
@@ -100,17 +100,17 @@ class CodecBool(udsoncan.DidCodec):
         self.id = idStr
         self.offset = offset
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         if string_ascii == 'on':
             return bytes([1])
         else:
             return bytes([0])
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         val = int(string_bin[self.offset])
         if(val==0):
             return "off"
@@ -129,14 +129,14 @@ class CodecUTF8(udsoncan.DidCodec):
         self.id = idStr
         self.offset = offset
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         mystr = string_bin[self.offset:self.offset+self.string_len].decode('utf-8')
         return mystr.replace('\x00', '')
        
@@ -151,14 +151,14 @@ class CodecHardwareSoftwareVersion(udsoncan.DidCodec):
         self.string_len = string_len
         self.id = idStr
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         lstv = []
         for i in range(0, self.string_len, 2):
             lstv.append(str(int.from_bytes(string_bin[i:i+2], byteorder="little")))
@@ -175,14 +175,14 @@ class CodecMACAddress(udsoncan.DidCodec):
         self.string_len = string_len
         self.id = idStr
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         lstv = []
         for i in range(6):
             lstv.append(string_bin[i:i+1].hex().upper())
@@ -199,14 +199,14 @@ class CodecIp4Addr(udsoncan.DidCodec):  # also working with IPV6
         self.string_len = string_len
         self.id = idStr
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         lstv = []
         for i in range(self.string_len):
             lstv.append(format(int(string_bin[i]), '03d'))
@@ -223,14 +223,14 @@ class CodecSDate(udsoncan.DidCodec):
         self.string_len = string_len
         self.id = idStr
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         return f"{int(string_bin[0]):02d}.{int(string_bin[1]):02d}.{2000+int(string_bin[2])}"
 
     def getCodecInfo(self):
@@ -245,14 +245,14 @@ class CodecDateTime(udsoncan.DidCodec):
         self.id = idStr
         self.timeformat = timeformat
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         
         if self.timeformat == 'VM':
             dt = datetime.datetime(
@@ -280,17 +280,17 @@ class CodecSTime(udsoncan.DidCodec):
         self.string_len = string_len
         self.id = idStr
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         else:
             string_bin = bytes()
             parts = string_ascii.split(":")
             return(bytes([int(p) for p in parts]))
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         lstv = []
         for i in range(self.string_len):
             lstv.append(f"{(string_bin[i]):02d}")
@@ -308,14 +308,14 @@ class CodecUTC(udsoncan.DidCodec):
         self.id = idStr
         self.offset = offset
 
-    def encode(self, string_ascii: Any) -> bytes: 
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes: 
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         val = datetime.datetime.fromtimestamp(int.from_bytes(string_bin[0:4], byteorder="little", signed=False)).strftime('%Y-%m-%d %H:%M:%S')
         return str(val)
 
@@ -331,9 +331,9 @@ class CodecEnum(udsoncan.DidCodec):
         self.id = idStr
         self.listStr = listStr
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
 
         if type(string_ascii) == dict:
             input = string_ascii['Text']
@@ -341,18 +341,18 @@ class CodecEnum(udsoncan.DidCodec):
             input = string_ascii
         else:
             raise ValueError("Ivalid input for OEEnum")
-        for key, value in open3e.Open3Eenums.E3Enums[self.listStr].items():
+        for key, value in enumerations.E3Enums[self.listStr].items():
             if value.lower() == input.lower():
                 string_bin = key.to_bytes(length=self.string_len,byteorder="little",signed=False)
                 return string_bin
         raise Exception("not found")
 
-    def decode(self, string_bin: bytes) -> str:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> str:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         try:
             val = int.from_bytes(string_bin[0:self.string_len], byteorder="little", signed=False)
-            txt = open3e.Open3Eenums.E3Enums[self.listStr][val]
+            txt = enumerations.E3Enums[self.listStr][val]
             return {"ID": val,
                     "Text": txt }
         except:
@@ -372,9 +372,9 @@ class CodecList(udsoncan.DidCodec):
         self.subTypes = subTypes
         self.len = len
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw): 
+            return CodecRaw.encode(self, string_ascii)
         else:
             input_dict = {k.lower():v for k,v in string_ascii.items()}
             keys = list(input_dict.keys())
@@ -397,11 +397,11 @@ class CodecList(udsoncan.DidCodec):
             string_bin+=bytes(self.string_len - len(string_bin))
         return string_bin
 
-    def decode(self, string_bin: bytes) -> Any:
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
         subTypes = self.subTypes
         idStr = self.id
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         result = {}
         index = 0
         if(self.len == 0): 
@@ -414,7 +414,7 @@ class CodecList(udsoncan.DidCodec):
                 result[subType.id]=count 
                 index =+ subType.string_len 
 
-            elif type(subType) is O3EComplexType:
+            elif type(subType) is CodecComplexType:
                 result[subType.id] = []
                 for i in range(count):
                     result[subType.id].append(subType.decode(string_bin[index:index+subType.string_len]))
@@ -442,14 +442,14 @@ class CodecArray(udsoncan.DidCodec):
         self.subTypes = subTypes
         self.len = arraylength
 
-    def encode(self, string_ascii: Any) -> bytes:        
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes) -> Any:
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
         subTypes = self.subTypes
         idStr = self.id
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         result = {}
         index = 0
         count = self.len
@@ -475,9 +475,9 @@ class CodecComplexType(udsoncan.DidCodec):
         self.id = idStr
         self.subTypes = subTypes
 
-    def encode(self, string_ascii: Any) -> bytes:        
-        if(flag_rawmode == True): 
-            return RawCodec.encode(self, string_ascii)
+    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
+        if(paramRaw):
+            return CodecRaw.encode(self, string_ascii)
         else:
             try:
                 string_bin = bytes()
@@ -487,9 +487,9 @@ class CodecComplexType(udsoncan.DidCodec):
                 raise ValueError(f"Cannot encode value due to missing key: {e}")
         return string_bin
 
-    def decode(self, string_bin: bytes) -> Any:
-        if(flag_rawmode == True): 
-            return RawCodec.decode(self, string_bin)
+    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+        if(paramRaw): 
+            return CodecRaw.decode(self, string_bin)
         result = dict()
         index = 0
         for subType in self.subTypes:
