@@ -56,7 +56,7 @@ Homepage = "https://github.com/Philip-Wiege/viessmannonebaselocal"
 documentation = "https://github.com/Philip-Wiege/ViessmannOneBaseLocal/wiki"
 repository = ""https://github.com/Philip-Wiege/viessmannonebaselocal"
 
-[project.scripts]
+#[project.scripts]
 
 
 # disable automatic code style check (for now)
