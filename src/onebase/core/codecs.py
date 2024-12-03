@@ -471,18 +471,18 @@ class CodecArray(udsoncan.DidCodec): #TBD
         return self.string_len
 
 class CodecComplexType(udsoncan.DidCodec):
-    def __init__(self, paramNumBytes:int, paramDIDName:str, subTypes : list):
+    def __init__(self, paramNumBytes:int, paramDIDName:str, paramListSubCodecs : list):
         self._numBytes = paramNumBytes
         self._DIDName = paramDIDName
-        self.subTypes = subTypes
+        self._subTypes = paramListSubCodecs
 
-    def encode(self, string_ascii:Any, paramRaw:bool=False) -> bytes:        
+    def encode(self, string_ascii:Any, paramRaw:bool=False) -> bytes:      
         if(paramRaw):
             _encodedBytes =  CodecRaw.encode(self, string_ascii) #just convert hex string to bytes
         else:
             try:
                 _encodedBytes = bytes()
-                for subType in self.subTypes:
+                for subType in self._subTypes:
                     _encodedBytes+=subType.encode(string_ascii[subType._DIDName])
             except KeyError as e:
                 raise ValueError(f"Cannot encode value due to missing key: {e}")
@@ -495,14 +495,14 @@ class CodecComplexType(udsoncan.DidCodec):
         else:
             _result = dict()
             _index = 0
-            for subType in self.subTypes:
+            for subType in self._subTypes:
                 _result[subType._DIDName] = subType.decode(paramEncodedBytes[_index:_index+subType._numBytes])
                 _index+=subType._numBytes
             return dict(_result)
     
     def getCodecInfo(self):
         argsSubTypes = []
-        for subType in self.subTypes:
+        for subType in self._subTypes:
             argsSubTypes.append(subType.getCodecInfo())
         return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"subTypes":argsSubTypes}})
     
