@@ -126,7 +126,7 @@ class CodecUTF8(udsoncan.DidCodec):
         if(paramRaw): 
             return CodecRaw.decode(self, paramEncodedBytes)
         else:
-            mystr = paramEncodedBytes[self.offset:self.offset+self.string_len].decode('utf-8')
+            mystr = paramEncodedBytes[self._offset:self._offset+self.string_len].decode('utf-8')
             return mystr.replace('\x00', '')
        
     def getCodecInfo(self):
