@@ -466,7 +466,7 @@ class CodecComplexType(udsoncan.DidCodec):
 
     def encode(self, string_ascii:Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw):
-            return CodecRaw.encode(self, string_ascii) #just convert hex string to bytes
+            _result =  CodecRaw.encode(self, string_ascii) #just convert hex string to bytes
         else:
             try:
                 _encodedBytes = bytes()
@@ -474,7 +474,17 @@ class CodecComplexType(udsoncan.DidCodec):
                     _encodedBytes+=subType.encode(string_ascii[subType._DIDName])
             except KeyError as e:
                 raise ValueError(f"Cannot encode value due to missing key: {e}")
-        return _encodedBytes
+            _result = _encodedBytes
+
+            _paddingByte = b'\x00'
+            if len(_result) < self._numBytes:
+                _resultPadddedCropped = _result.ljust(self._numBytes, _paddingByte)
+            elif len(_result) > self._numBytes:
+                _resultPadddedCropped = _result[0:self._numBytes]
+            else:
+                _resultPadddedCropped = _result
+
+        return _resultPadddedCropped
 
     def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): #just convert hex string to bytes
