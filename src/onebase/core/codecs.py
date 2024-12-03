@@ -51,7 +51,7 @@ class CodecInt(udsoncan.DidCodec):
             return CodecRaw.decode(self, paramEncodedBytes)
         else:
             val = int.from_bytes(paramEncodedBytes[self._offset:self._offset + self._byteWidth], byteorder=self._byteOrder, signed=self._signed)
-            return float(val) / self.scale
+            return float(val) / self._scale
 
     def getCodecInfo(self):
         return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"scale":self._scale, "signed":self._signed, "offset":self._offset}})
