@@ -2,7 +2,7 @@ import udsoncan
 from typing import Optional, Any
 import datetime
 import json
-import enumerations
+import onebase.core.enumerations
 
 class CodecRaw(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName:str):
