@@ -436,40 +436,6 @@ class CodecList(udsoncan.DidCodec): #TBD
     def __len__(self) -> int:
         return self.string_len
 
-class CodecArray(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str, subTypes: list, arraylength: int=0):
-        self.string_len = string_len
-        self.id = idStr
-        self.subTypes = subTypes
-        self.len = arraylength
-
-    def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
-        raise Exception("not implemented yet")
-
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
-        subTypes = self.subTypes
-        idStr = self.id
-        if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
-        result = {}
-        index = 0
-        count = self.len
-        for subType in subTypes:
-            result[subType.id]=[]
-            for i in range(count):
-                result[subType.id].append((subType.decode(string_bin[index:index+subType.string_len])))
-                index+=subType.string_len
-        return dict(result)
-    
-    def getCodecInfo(self):
-        argsSubTypes = []
-        for subType in self.subTypes:
-            argsSubTypes.append(subType.getCodecInfo())
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {"subTypes":argsSubTypes, "arrayLength":self.len}})
-
-    def __len__(self) -> int:
-        return self.string_len
-
 class CodecComplexType(udsoncan.DidCodec):
     def __init__(self, paramNumBytes:int, paramDIDName:str, paramListSubCodecs : list):
         self._numBytes = paramNumBytes
