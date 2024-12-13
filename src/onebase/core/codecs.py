@@ -147,53 +147,55 @@ class CodecUTF8(udsoncan.DidCodec):
     def getNumBytes(self) -> int:
         return self._numBytes
 
-class CodecHardwareSoftwareVersion(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str):
-        self.string_len = string_len
-        self.id = idStr
+class CodecHardwareSoftwareVersion(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw): 
             return CodecRaw.encode(self, string_ascii)
-        raise Exception("not implemented yet")
+        else:
+            raise NotImplementedError("Encoding of HardwareSoftwareVersion not implemented.")
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
+            return CodecRaw.decode(self, paramEncodedBytes)
         lstv = []
-        for i in range(0, self.string_len, 2):
-            lstv.append(str(int.from_bytes(string_bin[i:i+2], byteorder="little")))
+        for i in range(0, self._numBytes, 2):
+            lstv.append(str(int.from_bytes(paramEncodedBytes[i:i+2], byteorder="little")))
         return ".".join(lstv)
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "id": self._DIDName, "args": {}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
-class CodecMACAddress(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str):
-        self.string_len = string_len
-        self.id = idStr
+class CodecMACAddress(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw): 
             return CodecRaw.encode(self, string_ascii)
-        raise Exception("not implemented yet")
+        else:
+            raise NotImplementedError("Encoding of MACAddress not implemented.")
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
+            return CodecRaw.decode(self, paramEncodedBytes)
         lstv = []
         for i in range(6):
-            lstv.append(string_bin[i:i+1].hex().upper())
+            lstv.append(paramEncodedBytes[i:i+1].hex().upper())
         return "-".join(lstv)
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "id": self._DIDName, "args": {}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
 class CodecIp4Addr(udsoncan.DidCodec): #TBD  # also working with IPV6
     def __init__(self, string_len: int, idStr: str):
