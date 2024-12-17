@@ -63,7 +63,7 @@ class CodecInt(udsoncan.DidCodec):
 class CodecInt8(CodecInt):
     def __init__(self, paramNumBytes:int, paramDIDName:str, paramByteOrder="little", paramScale:float = 1.0, paramOffset:int = 0, paramSigned=False):
         CodecInt.__init__(self, paramNumBytes=paramNumBytes, paramDIDName=paramDIDName, paramByteWidth=1, paramByteOrder=paramByteOrder, paramScale=paramScale, paramOffset=paramOffset, paramSigned=paramSigned)
-
+        
 class CodecInt16(CodecInt):
     def __init__(self, paramNumBytes:int, paramDIDName:str, paramByteOrder="little", paramScale:float = 1.0, paramOffset:int = 0, paramSigned=False):
         CodecInt.__init__(self, paramNumBytes=paramNumBytes, paramDIDName=paramDIDName, paramByteWidth=2, paramByteOrder=paramByteOrder, paramScale=paramScale, paramOffset=paramOffset, paramSigned=paramSigned)
@@ -81,6 +81,7 @@ class CodecBool(udsoncan.DidCodec):
         self._numBytes = paramNumBytes
         self._DIDName = paramDIDName
         self._offset = paramOffset
+        print('bla')
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw):
