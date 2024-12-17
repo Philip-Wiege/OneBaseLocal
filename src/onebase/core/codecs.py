@@ -81,7 +81,6 @@ class CodecBool(udsoncan.DidCodec):
         self._numBytes = paramNumBytes
         self._DIDName = paramDIDName
         self._offset = paramOffset
-        print('bla')
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw):
