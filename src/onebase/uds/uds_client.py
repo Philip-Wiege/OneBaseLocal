@@ -8,9 +8,9 @@ from typing import Optional, Any
 
 from udsoncan.client import Client
 
-from open3e.Open3EudsService77 import WriteDataByIdentifier77
+from onebase.uds.uds_service_77 import WriteDataByIdentifier77
 
-class Open3EudsClient(Client):
+class OneBaseUDSClient(Client):
 
     def write_data_by_identifier(self, did: int, value: Any, useService77=False) -> Optional[services.WriteDataByIdentifier.InterpretedResponse]:
         """

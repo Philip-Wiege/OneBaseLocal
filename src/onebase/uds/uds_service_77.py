@@ -4,14 +4,14 @@ from udsoncan.Response import Response
 from udsoncan import DidCodec, check_did_config, make_did_codec_from_definition, fetch_codec_definition_from_config, DIDConfig
 from udsoncan.exceptions import *
 from udsoncan.BaseService import BaseResponseData
-from open3e.Open3EudsBaseService77 import Open3EudsBaseService
+from onebase.uds.uds_base_service_77 import OneBaseUDSBaseService
 from udsoncan.ResponseCode import ResponseCode
 from udsoncan.services.WriteDataByIdentifier import WriteDataByIdentifier
 import udsoncan.tools as tools
 
 from typing import Any, cast
 
-class WriteDataByIdentifier77(Open3EudsBaseService):
+class WriteDataByIdentifier77(OneBaseUDSBaseService):
     _sid = 0x77
     _use_subfunction = False
 

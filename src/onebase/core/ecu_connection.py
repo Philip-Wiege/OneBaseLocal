@@ -1,9 +1,8 @@
-
 import udsoncan
 from doipclient import DoIPClient
 from doipclient.connectors import DoIPClientUDSConnector
 #from udsoncan.client import Client
-from open3e.Open3EudsClient import Open3EudsClient
+from onebase.uds.uds_client import OneBaseUDSClient
 from udsoncan.exceptions import *
 from udsoncan.services import *
 
@@ -12,17 +11,14 @@ from udsoncan.connections import PythonIsoTpConnection
 from can.interfaces.socketcan import SocketcanBus
 import isotp
 
-from typing import Optional, Any
-import logging
 import importlib
 import binascii
 import os
 import sys
 import time
 
-import open3e.Open3Edatapoints
-import open3e.Open3Ecodecs
-from open3e.Open3Ecodecs import *
+import onebase.core.codecs
+from onebase.core.codecs import *
 
 # import arbitrary python files as modules
 def import_path(path):
@@ -37,68 +33,24 @@ def import_path(path):
     return module
 
 
-class O3Eclass():
-    def __init__(self, ecutx:int=0x680, ecurx:int=0,
-                 doip:str=None, # doip mode if not empty  
-                 can:str='can0', 
-                 dev=None
-                ):
+class ECUConnection():
+    def __init__(self, paramTXAddress:int=0x680, paramRXAddress:int=None, paramDoIPAddress:str=None, can:str='can0', dev=None):
 
-        self.tx = ecutx 
+        self.tx = paramTXAddress
+        if paramRXAddress == None:
+            self.rx = paramTXAddress + 0x10
+        else:
+            self.rx = paramRXAddress
         self.dev = dev  # not necessary
         self.numdps = 0
 
-        # ECU addresses ~~~~~~~~~~~~~~~~~~
-        if(ecurx == 0):
-            ecurx = ecutx + 0x10
-
         # load general datapoints table from open3e.Open3Edatapoints.py
-        self.dataIdentifiers = dict(open3e.Open3Edatapoints.dataIdentifiers["dids"])            
+        self.dataIdentifiers = dict()            
 
-        # overlay dids if certain device is selected ~~~~~~~~~~~~~~~~~~
-        if(dev != None):  #!?! was kommt aus config.json?!?
-            if(dev != ''):  #!?! was kommt aus config.json?!?
-                if('.py' in dev):
-                    didmoduledev = import_path(dev)
-                else:
-                    module_name = "open3e.Open3Edatapoints" + dev.capitalize()
-                    didmoduledev = importlib.import_module(module_name)
-
-                # load datapoints for selected device
-                
-                dataIdentifiersDev = didmoduledev.dataIdentifiers["dids"]
-
-                # add dids not in general but in device to general
-                for key,val in dataIdentifiersDev.items():
-                    if not (key in self.dataIdentifiers):
-                        if(val != None):
-                            self.dataIdentifiers[key] = val
-
-                # overlay device dids over general table 
-                lstpops = []
-                for itm in self.dataIdentifiers:
-                    if not (itm in dataIdentifiersDev):
-                        lstpops.append(itm)
-                    elif not (dataIdentifiersDev[itm] is None):  # None means 'no change', nothing special
-                        self.dataIdentifiers[itm] = dataIdentifiersDev[itm]
-
-                # remove dids not existing with the device
-                for itm in lstpops:
-                    self.dataIdentifiers.pop(itm)
-
-                # debug only - see what we have now with this device
-                #for itm in dataIdentifiers:
-                #    print(f"{itm}:{type(dataIdentifiers[itm]).__name__}, {dataIdentifiers[itm].string_len}")
-
-                # probably useless but to indicate that it's not required anymore
-                dataIdentifiersDev = None
-                didmoduledev = None
-                # for info
-                self.numdps = len(self.dataIdentifiers)
 
         # select CAN / DoIP ~~~~~~~~~~~~~~~~~~
-        if(doip != None):
-            conn = DoIPClientUDSConnector(DoIPClient(doip, ecutx))
+        if(paramDoIPAddress != None):
+            conn = DoIPClientUDSConnector(DoIPClient(paramDoIPAddress, self.tx))
         else:
             # Refer to isotp documentation for full details about parameters
             isotp_params = {
@@ -120,15 +72,10 @@ class O3Eclass():
                 'listen_mode': False                    # Does not use the listen_mode which prevent transmission.
             }
             bus = SocketcanBus(channel=can, bitrate=250000)                                     # Link Layer (CAN protocol)
-            tp_addr = isotp.Address(isotp.AddressingMode.Normal_11bits, txid=ecutx, rxid=ecurx) # Network layer addressing scheme
+            tp_addr = isotp.Address(isotp.AddressingMode.Normal_11bits, txid=self.tx, rxid=self.rx) # Network layer addressing scheme
             stack = isotp.CanStack(bus=bus, address=tp_addr, params=isotp_params)               # Network/Transport layer (IsoTP protocol)
             stack.set_sleep_timing(0.01, 0.01)                                                  # Balancing speed and load
             conn = PythonIsoTpConnection(stack)                                                 # interface between Application and Transport layer
-
-        # UDS setup ~~~~~~~~~~~~~~~~~~
-        udsoncan.setup_logging()
-        loglevel = logging.ERROR
-        conn.logger.setLevel(loglevel)  #?? hier? s.u.
 
         # configuration for udsoncan client
         config = dict(udsoncan.configs.default_client_config)
@@ -139,9 +86,8 @@ class O3Eclass():
         config['p2_star_timeout'] = 20
         
         # run uds client
-        self.uds_client = Open3EudsClient(conn, config=config)
+        self.uds_client = OneBaseUDSClient(conn, config=config)
         self.uds_client.open()
-        self.uds_client.logger.setLevel(loglevel)
 
 
     # utils -----------------------
@@ -466,12 +412,6 @@ class O3Eclass():
         else: #DID is not in DID list so decoding is unknown. Force raw writing
             raise NotImplementedError("Writing to unknown DIDs is currently not supported.")
 
-    def readAll(self, raw:bool):
-        lst = []
-        for did,cdc in self.dataIdentifiers.items():
-            value,idstr = self._readByDid(int(did), raw=raw)
-            lst.append([did, value, idstr])
-        return lst 
 
     # reading without knowing length / codec
     def readPure(self, did:int):

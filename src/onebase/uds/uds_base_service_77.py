@@ -1,6 +1,6 @@
 from udsoncan.BaseService import BaseService
 
-class Open3EudsBaseService(BaseService):
+class OneBaseUDSBaseService(BaseService):
 
     @classmethod  # Returns the service ID used for a server response
     def response_id(cls) -> int:
