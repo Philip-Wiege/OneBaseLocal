@@ -1,8 +1,7 @@
 import udsoncan
-from typing import Optional, Any
+from typing import Any
 import datetime
-import json
-import onebase.core.enumerations
+from onebase.core.enumerations import OneBaseEnums
 
 class CodecRaw(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName:str):
@@ -72,7 +71,7 @@ class CodecInt32(CodecInt):
     def __init__(self, paramNumBytes:int, paramDIDName:str, paramByteOrder="little", paramScale:float = 1.0, paramOffset:int = 0, paramSigned=False):
         CodecInt.__init__(self, paramNumBytes=paramNumBytes, paramDIDName=paramDIDName, paramByteWidth=4, paramByteOrder=paramByteOrder, paramScale=paramScale, paramOffset=paramOffset, paramSigned=paramSigned)
 
-class CodecByte(udsoncan.DidCodec):
+class CodecByte(CodecInt):
     def __init__(self, paramNumBytes:int, paramDIDName:str, paramOffset:int = 0):
         CodecInt.__init__(self, paramNumBytes=paramNumBytes, paramDIDName=paramDIDName, paramByteWidth=1, paramByteOrder="little", paramScale=1.0, paramOffset=paramOffset, paramSigned=False)
 
@@ -189,7 +188,7 @@ class CodecMACAddress(udsoncan.DidCodec):
         lstv = []
         for i in range(6):
             lstv.append(paramEncodedBytes[i:i+1].hex().upper())
-        return "-".join(lstv)
+        return ":".join(lstv)
 
     def getCodecInfo(self):
         return ({"codec": self.__class__.__name__, "len": self._numBytes, "id": self._DIDName, "args": {}})
@@ -197,55 +196,56 @@ class CodecMACAddress(udsoncan.DidCodec):
     def getNumBytes(self) -> int:
         return self._numBytes
 
-class CodecIp4Addr(udsoncan.DidCodec): #TBD  # also working with IPV6
-    def __init__(self, string_len: int, idStr: str):
-        self.string_len = string_len
-        self.id = idStr
+class CodecIPAddress(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw): 
             return CodecRaw.encode(self, string_ascii)
-        raise Exception("not implemented yet")
+        else:
+            raise NotImplementedError("Encoding of IP Address not implemented.")
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
+            return CodecRaw.decode(self, paramEncodedBytes)
         lstv = []
-        for i in range(self.string_len):
-            lstv.append(format(int(string_bin[i]), '03d'))
+        for i in range(self._numBytes):
+            lstv.append(format(int(paramEncodedBytes[i]), '03d'))
         return ".".join(lstv)
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "id": self._DIDName, "args": {}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
-class CodecSDate(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str):
-        self.string_len = string_len
-        self.id = idStr
+class CodecSDate(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw): 
             return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
-        return f"{int(string_bin[0]):02d}.{int(string_bin[1]):02d}.{2000+int(string_bin[2])}"
+            return CodecRaw.decode(self, paramEncodedBytes)
+        return f"{int(paramEncodedBytes[0]):02d}.{int(paramEncodedBytes[1]):02d}.{2000+int(paramEncodedBytes[2])}"
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"offset":self._offset}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
-class CodecDateTime(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str, timeformat: str="VM"):
-        self.string_len = string_len
-        self.id = idStr
+class CodecDateTime(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str, timeformat: str="VM"):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
         self.timeformat = timeformat
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
@@ -253,35 +253,35 @@ class CodecDateTime(udsoncan.DidCodec): #TBD
             return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
+            return CodecRaw.decode(self, paramEncodedBytes)
         
         if self.timeformat == 'VM':
             dt = datetime.datetime(
-                 string_bin[0]*100+string_bin[1], # year
-                 string_bin[2],                   # month
-                 string_bin[3],                   # day
-                 string_bin[5],                   # hour
-                 string_bin[6],                   # minute
-                 string_bin[7]                    # second
+                 paramEncodedBytes[0]*100+paramEncodedBytes[1], # year
+                 paramEncodedBytes[2],                   # month
+                 paramEncodedBytes[3],                   # day
+                 paramEncodedBytes[5],                   # hour
+                 paramEncodedBytes[6],                   # minute
+                 paramEncodedBytes[7]                    # second
                 )
         if self.timeformat == 'ts':
-            dt = datetime.datetime.fromtimestamp(int.from_bytes(string_bin[0:6], byteorder="little", signed=False))
+            dt = datetime.datetime.fromtimestamp(int.from_bytes(paramEncodedBytes[0:6], byteorder="little", signed=False))
         return { "DateTime": str(dt),
                  "Timestamp": int(dt.timestamp()*1000)
                }
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {"timeformat":self.timeformat}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"offset":self._offset}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
-class CodecSTime(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str):
-        self.string_len = string_len
-        self.id = idStr
+class CodecSTime(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw): 
@@ -291,24 +291,24 @@ class CodecSTime(udsoncan.DidCodec): #TBD
             parts = string_ascii.split(":")
             return(bytes([int(p) for p in parts]))
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
+            return CodecRaw.decode(self, paramEncodedBytes)
         lstv = []
-        for i in range(self.string_len):
-            lstv.append(f"{(string_bin[i]):02d}")
+        for i in range(self._numBytes):
+            lstv.append(f"{(paramEncodedBytes[i]):02d}")
         return ":".join(lstv)
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"offset":self._offset}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
-class CodecUTC(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str, offset: int = 0):
-        self.string_len = string_len
-        self.id = idStr
+class CodecUTC(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str, offset: int = 0):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
         self.offset = offset
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes: 
@@ -316,23 +316,23 @@ class CodecUTC(udsoncan.DidCodec): #TBD
             return CodecRaw.encode(self, string_ascii)
         raise Exception("not implemented yet")
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
-        val = datetime.datetime.fromtimestamp(int.from_bytes(string_bin[0:4], byteorder="little", signed=False)).strftime('%Y-%m-%d %H:%M:%S')
+            return CodecRaw.decode(self, paramEncodedBytes)
+        val = datetime.datetime.fromtimestamp(int.from_bytes(paramEncodedBytes[0:4], byteorder="little", signed=False)).strftime('%Y-%m-%d %H:%M:%S')
         return str(val)
 
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {"offset":self.offset}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"offset":self._offset}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
-class CodecEnum(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str, listStr:str):
-        self.string_len = string_len
-        self.id = idStr
-        self.listStr = listStr
+class CodecEnumeration(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str, paramEnumName:str):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
+        self._enumName = paramEnumName
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw): 
@@ -344,35 +344,35 @@ class CodecEnum(udsoncan.DidCodec): #TBD
             input = string_ascii
         else:
             raise ValueError("Ivalid input for OEEnum")
-        for key, value in enumerations.E3Enums[self.listStr].items():
+        for key, value in OneBaseEnums[self._enumName].items():
             if value.lower() == input.lower():
-                string_bin = key.to_bytes(length=self.string_len,byteorder="little",signed=False)
+                string_bin = key.to_bytes(length=self._numBytes,byteorder="little",signed=False)
                 return string_bin
         raise Exception("not found")
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> str:
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> str:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
+            return CodecRaw.decode(self, paramEncodedBytes)
         try:
-            val = int.from_bytes(string_bin[0:self.string_len], byteorder="little", signed=False)
-            txt = enumerations.E3Enums[self.listStr][val]
+            val = int.from_bytes(paramEncodedBytes[0:self._numBytes], byteorder="little", signed=False)
+            txt = OneBaseEnums[self._enumName][val]
             return {"ID": val,
                     "Text": txt }
         except:
             return {"ID": val,
-                    "Text": "not found in " + self.listStr}
+                    "Text": "not found in " + self._enumName}
         
     def getCodecInfo(self):
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {"listStr":self.listStr}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"listStr":self._enumName}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
        
-class CodecList(udsoncan.DidCodec): #TBD
-    def __init__(self, string_len: int, idStr: str, subTypes: list, arraylength: int=0):
-        self.string_len = string_len
-        self.id = idStr
-        self.subTypes = subTypes
+class CodecList(udsoncan.DidCodec):
+    def __init__(self, paramNumBytes: int, paramDIDName: str, paramListSubCodecs: list, paramArrayLength: int=0):
+        self._numBytes = paramNumBytes
+        self._DIDName = paramDIDName
+        self._listSubCodecs = paramListSubCodecs
         self.len = len
 
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
@@ -387,9 +387,9 @@ class CodecList(udsoncan.DidCodec): #TBD
             count = input_dict["count"]
             keys.remove("count")
             input_list = input_dict[keys[0]]
-            list_type = self.subTypes[1]
+            list_type = self._listSubCodecs[1]
             string_bin = bytes()
-            string_bin+=self.subTypes[0].encode(count)
+            string_bin+=self._listSubCodecs[0].encode(count)
             assert count == len(input_list), '"count" and list lenght do not match for OEList'
             for i in range(count):
                 try:
@@ -397,46 +397,44 @@ class CodecList(udsoncan.DidCodec): #TBD
                 except KeyError as e:
                     raise ValueError(f"Cannot encode value due to missing key: {e}")
             # zero padding
-            string_bin+=bytes(self.string_len - len(string_bin))
+            string_bin+=bytes(self._numBytes - len(string_bin))
         return string_bin
 
-    def decode(self, string_bin: bytes, paramRaw:bool=False) -> Any:
-        subTypes = self.subTypes
-        idStr = self.id
+    def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> Any:
         if(paramRaw): 
-            return CodecRaw.decode(self, string_bin)
+            return CodecRaw.decode(self, paramEncodedBytes)
         result = {}
         index = 0
         if(self.len == 0): 
             count = 0
 
-        for subType in self.subTypes:
+        for subType in self._listSubCodecs:
             # we expect a byte element with the name "Count" or "count"
-            if subType.id.lower() == 'count':
-                count = int(subType.decode(string_bin[index:index+subType.string_len]))
-                result[subType.id]=count 
-                index =+ subType.string_len 
+            if subType._DIDName.lower() == 'count':
+                count = int(subType.decode(paramEncodedBytes[index:index+subType._numBytes]))
+                result[subType._DIDName]=count 
+                index =+ subType._numBytes 
 
             elif type(subType) is CodecComplexType:
-                result[subType.id] = []
+                result[subType._DIDName] = []
                 for i in range(count):
-                    result[subType.id].append(subType.decode(string_bin[index:index+subType.string_len]))
-                    index+=subType.string_len
+                    result[subType._DIDName].append(subType.decode(paramEncodedBytes[index:index+subType._numBytes]))
+                    index+=subType._numBytes
 
             else:
-                result[subType.id]=subType.decode(string_bin[index:index+subType.string_len]) 
-                index = index + subType.string_len
+                result[subType._DIDName]=subType.decode(paramEncodedBytes[index:index+subType._numBytes]) 
+                index = index + subType._numBytes
 
         return dict(result)
     
     def getCodecInfo(self):
         argsSubTypes = []
-        for subType in self.subTypes:
+        for subType in self._listSubCodecs:
             argsSubTypes.append(subType.getCodecInfo())
-        return ({"codec": self.__class__.__name__, "len": self.string_len, "id": self.id, "args": {"subTypes":argsSubTypes}})
+        return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"subCodecs":argsSubTypes}})
 
-    def __len__(self) -> int:
-        return self.string_len
+    def getNumBytes(self) -> int:
+        return self._numBytes
 
 class CodecComplexType(udsoncan.DidCodec):
     def __init__(self, paramNumBytes:int, paramDIDName:str, paramListSubCodecs : list):

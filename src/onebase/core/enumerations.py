@@ -1,4 +1,4 @@
-E3Enums = {
+OneBaseEnums = {
     "Errors" : {
         0:"NoErrorAvailable",
         1:"InterruptionFlowTemperatureSensor",
