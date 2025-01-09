@@ -90,84 +90,6 @@ class ECUConnection():
         self.uds_client.open()
 
 
-    # utils -----------------------
-    def get_did_as_int(self, v):
-        try:
-            did = int(eval(str(v)))
-            return did
-        except:
-            for did,cdc in self.dataIdentifiers.items():
-                if(cdc.id.lower() == str(v).lower()):
-                    return did
-            raise ValueError(f"No DID found according to {v}")
-
-
-    def get_sub_as_int(self, did:int, v):
-        try:
-            sub = int(eval(str(v)))
-            return sub
-        except:
-            for i in range(len(self.dataIdentifiers[did].subtypes)):
-                if(self.dataIdentifiers[did].subtypes[i].id.lower() == str(v).lower()):
-                    return i
-            raise ValueError(f"No Sub found according to {v} with DID {did}")
-
-
-    #++++++++++++++++++++++++++++++
-    # 'global' methods
-    #++++++++++++++++++++++++++++++
-
-    def readByDid(self, did:any, raw:bool, sub=None):
-        verbose=True # Temp!!
-
-        idid = self.get_did_as_int(did)
-
-        if(sub is None):
-            return self._readByDid(idid, raw)
-
-        if(idid not in self.dataIdentifiers):
-            raise NotImplementedError(f"No Codec specified for DID {idid} in Datapoints.py")
-        
-        selectedDid = self.dataIdentifiers[idid]
-
-        if(not isinstance(selectedDid, open3e.Open3Ecodecs.O3EComplexType)):
-            raise NotImplementedError(f"DID {idid} is not complex.")   
-        
-        isub = self.get_sub_as_int(idid, sub)
-
-        if (isub >= len(selectedDid.subTypes) or isub < 0):
-            raise NotImplementedError(f"Sub-DID with Index {isub} does not exist in DID {idid}")
-            
-        selectedSub = selectedDid.subTypes[isub]
-
-        startIndexSub = 0
-        for i in range(isub):
-            startIndexSub += selectedDid.subTypes[i].string_len
-
-        stopIndexSub = startIndexSub + selectedSub.string_len
-
-        string_ascii_did,_ = self._readByDid(idid, raw=True)
-
-        string_ascii_sub = string_ascii_did[(startIndexSub*2):(stopIndexSub*2)]
-        string_bin = bytearray.fromhex(string_ascii_sub)
-        decodedData = selectedSub.decode(string_bin)
-
-        if verbose:
-            print("DID: " + str(idid))
-            print("DID Name: " + str(selectedDid.id))
-            print("Raw DID Data: " + str(string_ascii_sub))
-            print("DID " + str(idid) + " consists of " + str(len(selectedDid.subTypes)) + " Sub-DIDs.")
-            print("Sub DID: " + str(sub))
-            print("Sub DID Name: " + selectedSub.id)
-            print("First Byte: " + str(startIndexSub))
-            print("Last Byte: " + str(stopIndexSub-1))
-            print("Sub DID Data:" + str(string_ascii_sub)) 
-            print("Sub DID Decoded Data: " + str(idid) + "." + str(sub) + ": " + str(decodedData))
-        
-        return decodedData,selectedSub.id
-                        
-
-    # not global anymore... ;-)
     def _readByDid(self, did:int, raw:bool):
         if(did in self.dataIdentifiers): 
             open3e.Open3Ecodecs.flag_rawmode = raw
@@ -176,131 +98,24 @@ class ECUConnection():
             return response.service_data.values[did],self.dataIdentifiers[did].id
         else:
             return self.readPure(did)
-
-
-    def readByComplexDid(self, did:int, subDid:int = 0, raw:bool = False, verbose=False):
-        if(did in self.dataIdentifiers):
-            open3e.Open3Ecodecs.flag_rawmode = True
-            rawResponse = self.uds_client.read_data_by_identifier(did)
-            rawDidData = rawResponse.service_data.values[did]
-
-            open3e.Open3Ecodecs.flag_rawmode = raw
-
-            selectedDid = self.dataIdentifiers[did]
-            
-            if type(selectedDid) == open3e.Open3Ecodecs.O3EComplexType:
-                numSubDids = len(selectedDid.subTypes)              
-                
-                if (subDid > numSubDids-1 or subDid < 0):
-                    raise NotImplementedError("Sub-DID with Index " + str(subDid) +" does not exist in DID " + str(did))
-                 
-                bytesProcessed = 0
-                
-                for indexSubDid in range(0, numSubDids):
-                    selectedSubDid = selectedDid.subTypes[indexSubDid]
-                    lenSubDid = selectedSubDid.string_len
-                    startIndexSubDid = bytesProcessed
-                    endIndexSubDid = startIndexSubDid + lenSubDid-1
-                    
-                    if indexSubDid == subDid:
-                        bytesSubDid = rawDidData[(2*startIndexSubDid):((endIndexSubDid+1)*2)]   
-                        bytesToDecode = bytearray.fromhex(bytesSubDid)
-                        decodedData = selectedSubDid.decode(bytesToDecode)
-
-                        if verbose:
-                            print("DID: " + str(did))
-                            print("DID Name: " + str(selectedDid.id))
-                            print("Raw DID Data: " + str(rawDidData))
-                            print("DID " + str(did) + " consists of " + str(numSubDids) + " Sub-DIDs.")
-                            print("Sub DID: " + str(indexSubDid))
-                            print("Sub DID Name: " + selectedSubDid.id)
-                            print("Start Byte: " + str(startIndexSubDid))
-                            print("End Byte: " + str(endIndexSubDid))
-                            print("Sub DID Data:" + str(bytesSubDid))
-                            print("Sub DID Decoded Data: " + str(did) + "." + str(indexSubDid) + ": " + str(decodedData))
-                        return decodedData 
-                              
-                    bytesProcessed += lenSubDid
-            else:
-                raise NotImplementedError("DID " + str(did) + " is not complex.")   
-        else:
-            raise NotImplementedError("No Codec specified for DID " + str(did) + " in Datapoints.py.")
-
     
-    def writeByDid(self, did:int, val, raw:bool, useService77=False):
+    def _writeByDid(self, did:int, val, raw:bool, useService77=False):
         open3e.Open3Ecodecs.flag_rawmode = raw
         response = self.uds_client.write_data_by_identifier(did, val, useService77)
         succ = (response.valid & response.positive)
         return succ, response.code
-
-
-    def writeByComplexDid(self, did:int, subDid:int, val, raw:bool=False, simulateOnly:bool=True, useService77=False, verbose=False):
-        if(did in self.dataIdentifiers):
-            selectedDid = self.dataIdentifiers[did]
-            if (type(selectedDid) == open3e.Open3Ecodecs.O3EComplexType):
-                # Step 1: Read raw data of complete complex DID
-                numSubDids = len(selectedDid.subTypes)
-                open3e.Open3Ecodecs.flag_rawmode = True
-                rawResponse = self.uds_client.read_data_by_identifier(did)
-                rawDidData = rawResponse.service_data.values[did]
-                open3e.Open3Ecodecs.flag_rawmode = False
-
-
-                # Step 2: Find sub-DID bytes that need to be modified in DID
-                bytesProcessed = 0
-                bytesSubDid = ""
-                
-                for indexSubDid in range(0, numSubDids):
-                    selectedSubDid = selectedDid.subTypes[indexSubDid]
-                    lenSubDid = selectedSubDid.string_len
-                    startIndexSubDid = bytesProcessed
-                    endIndexSubDid = startIndexSubDid + lenSubDid-1
-   
-                    if indexSubDid == subDid:
-                        matchingSubDid = selectedSubDid
-                        if verbose:
-                            print("DID: " + str(did))
-                            print("DID Name: " + str(selectedDid.id))
-                            print("Raw DID Data: " + str(rawDidData))
-                            print("DID " + str(did) + " consists of " + str(numSubDids) + " Sub-DIDs.")
-                            print("Sub DID: " + str(indexSubDid))
-                            print("Sub DID Name: " + selectedSubDid.id)
-                            print("Start Byte: " + str(startIndexSubDid))
-                            print("End Byte: " + str(endIndexSubDid))
-
-                        startStringIndexSubDid = (2*startIndexSubDid)
-                        endStringIndexSubDid = ((endIndexSubDid+1)*2)
-                        
-                        bytesSubDid = rawDidData[startStringIndexSubDid:endStringIndexSubDid]
-                              
-                    bytesProcessed += lenSubDid
-
-                # Step 3: Modify bytes in raw complete DID data
-                open3e.Open3Ecodecs.flag_rawmode = raw
-                encodedData = matchingSubDid.encode(val)
-                encodedDataHexString = encodedData.hex()
-                
-                if len(bytesSubDid) == len(encodedDataHexString):
-                    if (subDid == numSubDids-1): #if is last sub DID
-                        rawDidDataNew = rawDidData[:startStringIndexSubDid] + encodedDataHexString
-                    elif(subDid == 0): # if is first sub DID
-                        rawDidDataNew = encodedDataHexString + rawDidData[endStringIndexSubDid:]
-                    else:
-                        rawDidDataNew = rawDidData[0:startStringIndexSubDid] + encodedDataHexString + rawDidData[endStringIndexSubDid:]
-                    
-                    if verbose:
-                        print("New Raw Sub DID Data: " + encodedDataHexString)
-                        print("New Raw DID Data: " + rawDidDataNew)
-
-                    if not simulateOnly:
-                        self.writeByDid(did,rawDidDataNew,True,useService77)
-
-                else:
-                    raise NotImplementedError("Encoded Sub-DID length does not match the length in complex DID")   
-            else:
-                raise NotImplementedError("DID " + str(did) + " is not complex.") 
+    
+    def _readPure(self, did:int):
+        response = self.uds_client.send_request(
+            udsoncan.Request(
+                service=udsoncan.services.ReadDataByIdentifier,
+                data=(did).to_bytes(2, byteorder='big')
+            )
+        )
+        if(response.positive):
+            return binascii.hexlify(response.data[2:]).decode('utf-8'),f"unknown:len={len(response)-3}"
         else:
-            raise NotImplementedError("No Codec specified for DID " + str(did) + " in Datapoints.py.")
+            return f"negative response, {response.code}:{response.invalid_reason}","unknown"
 
     def readGenericDid(self, paramDid:int, paramSubDid:int=-1, paramRaw:bool=False, paramVerbose:bool=False):
 
@@ -345,7 +160,7 @@ class ECUConnection():
                 return self._readByDid(paramDid, paramRaw)
             
         else: #DID is not in DID list so decoding is unknown. Force raw output
-            return self.readPure(paramDid)
+            return self._readPure(paramDid)
 
     def writeGenericDid(self, paramDid:int, paramValue:any, paramSubDid:int=-1, paramRaw:bool=False, paramService77:bool=False, paramVerbose:bool=False, paramSimulateOnly=False):
         if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known
@@ -402,29 +217,17 @@ class ECUConnection():
                         print("New Raw DID Data: " + rawDidDataNew)
 
                     if not paramSimulateOnly:
-                        self.writeByDid(paramDid,rawDidDataNew,True,paramService77)
+                        self._writeByDid(paramDid,rawDidDataNew,True,paramService77)
 
                 else:
                     raise NotImplementedError("Encoded Sub-DID length does not match the length in complex DID")   
 
             else: #DID is not complex
-                self.writeByDid(paramDid, paramValue, paramRaw, paramService77)
+                self._writeByDid(paramDid, paramValue, paramRaw, paramService77)
         else: #DID is not in DID list so decoding is unknown. Force raw writing
             raise NotImplementedError("Writing to unknown DIDs is currently not supported.")
-
-
-    # reading without knowing length / codec
-    def readPure(self, did:int):
-        response = self.uds_client.send_request(
-            udsoncan.Request(
-                service=udsoncan.services.ReadDataByIdentifier,
-                data=(did).to_bytes(2, byteorder='big')
-            )
-        )
-        if(response.positive):
-            return binascii.hexlify(response.data[2:]).decode('utf-8'),f"unknown:len={len(response)-3}"
-        else:
-            return f"negative response, {response.code}:{response.invalid_reason}","unknown"
-  
+            
     def close(self):
         self.uds_client.close()
+
+
