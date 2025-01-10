@@ -44,7 +44,7 @@ class ECUConnection():
         self.numdps = 0
 
         # load general datapoints table from open3e.Open3Edatapoints.py
-        self.dataIdentifiers = dict()            
+        self.dataIdentifiers = dict()         
 
 
         # select CAN / DoIP ~~~~~~~~~~~~~~~~~~
@@ -106,7 +106,6 @@ class ECUConnection():
         succ = (response.valid & response.positive)
         return succ, response.code
     
-
     def readDataByIdentifier(self, paramDid:int, paramSubDid:int=-1, paramRaw:bool=False, paramVerbose:bool=False):
 
         if(paramDid in self.dataIdentifiers and type(selectedDid) == onebase.core.codecs.CodecComplexType): #DID is in DID list so decoding is known and DID is complex
@@ -213,5 +212,3 @@ class ECUConnection():
             
     def close(self):
         self.uds_client.close()
-
-
