@@ -32,7 +32,6 @@ def import_path(path):
     sys.modules[module_name] = module
     return module
 
-
 class ECUConnection():
     def __init__(self, paramTXAddress:int=0x680, paramRXAddress:int=None, paramDoIPAddress:str=None, can:str='can0', dev=None):
 
@@ -89,13 +88,12 @@ class ECUConnection():
         self.uds_client = OneBaseUDSClient(conn, config=config)
         self.uds_client.open()
 
-
     def _readByDid(self, did:int, raw:bool):
         if(did in self.dataIdentifiers): 
             open3e.Open3Ecodecs.flag_rawmode = raw
             response = self.uds_client.read_data_by_identifier([did])
             # return value and idstr
-            return response.service_data.values[did],self.dataIdentifiers[did].id
+            return response.service_data.values[did]
         else:
             return self.readPure(did)
     
@@ -115,9 +113,9 @@ class ECUConnection():
         if(response.positive):
             return binascii.hexlify(response.data[2:]).decode('utf-8'),f"unknown:len={len(response)-3}"
         else:
-            return f"negative response, {response.code}:{response.invalid_reason}","unknown"
+            return f"negative response, {response.code}:{response.invalid_reason}"
 
-    def readGenericDid(self, paramDid:int, paramSubDid:int=-1, paramRaw:bool=False, paramVerbose:bool=False):
+    def readDataByIdentifier(self, paramDid:int, paramSubDid:int=-1, paramRaw:bool=False, paramVerbose:bool=False):
 
         if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known
             selectedDid = self.dataIdentifiers[paramDid]
@@ -132,7 +130,7 @@ class ECUConnection():
                     selectedSubDid = selectedDid.subTypes[paramSubDid]
                     nameSelectedSubDid = selectedSubDid.id
 
-                    out1, out2 = self._readByDid(paramDid,paramRaw)
+                    out1 = self._readByDid(paramDid,paramRaw)
 
                     if paramRaw: #if raw reading is activated the result is a hex string
                         lenSubDid = selectedSubDid.string_len
@@ -162,7 +160,7 @@ class ECUConnection():
         else: #DID is not in DID list so decoding is unknown. Force raw output
             return self._readPure(paramDid)
 
-    def writeGenericDid(self, paramDid:int, paramValue:any, paramSubDid:int=-1, paramRaw:bool=False, paramService77:bool=False, paramVerbose:bool=False, paramSimulateOnly=False):
+    def writeDataByIdentifier(self, paramDid:int, paramValue:any, paramSubDid:int=-1, paramRaw:bool=False, paramCheckAfterWrite:bool=False, paramService77:bool=False, paramSimulateOnly=False, paramVerbose:bool=False):
         if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known
             selectedDid = self.dataIdentifiers[paramDid]
             if (type(selectedDid) == open3e.Open3Ecodecs.O3EComplexType): #DID is complex
