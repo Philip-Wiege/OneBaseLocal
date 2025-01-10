@@ -88,85 +88,72 @@ class ECUConnection():
         self.uds_client = OneBaseUDSClient(conn, config=config)
         self.uds_client.open()
 
-    def _readByDid(self, did:int, raw:bool):
+    def _readByDid(self, did:int, raw:bool=False):
         if(did in self.dataIdentifiers): 
-            open3e.Open3Ecodecs.flag_rawmode = raw
             response = self.uds_client.read_data_by_identifier([did])
-            # return value and idstr
             return response.service_data.values[did]
         else:
-            return self.readPure(did)
+            request = udsoncan.Request(service=udsoncan.services.ReadDataByIdentifier,data=(did).to_bytes(2, byteorder='big'))
+            response = self.uds_client.send_request(request)
+
+            if(response.positive):
+                return binascii.hexlify(response.data[2:]).decode('utf-8')
+            else:
+                return f"negative response, {response.code}:{response.invalid_reason}"
     
     def _writeByDid(self, did:int, val, raw:bool, useService77=False):
-        open3e.Open3Ecodecs.flag_rawmode = raw
         response = self.uds_client.write_data_by_identifier(did, val, useService77)
         succ = (response.valid & response.positive)
         return succ, response.code
     
-    def _readPure(self, did:int):
-        response = self.uds_client.send_request(
-            udsoncan.Request(
-                service=udsoncan.services.ReadDataByIdentifier,
-                data=(did).to_bytes(2, byteorder='big')
-            )
-        )
-        if(response.positive):
-            return binascii.hexlify(response.data[2:]).decode('utf-8'),f"unknown:len={len(response)-3}"
-        else:
-            return f"negative response, {response.code}:{response.invalid_reason}"
 
     def readDataByIdentifier(self, paramDid:int, paramSubDid:int=-1, paramRaw:bool=False, paramVerbose:bool=False):
 
-        if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known
+        if(paramDid in self.dataIdentifiers and type(selectedDid) == onebase.core.codecs.CodecComplexType): #DID is in DID list so decoding is known and DID is complex
             selectedDid = self.dataIdentifiers[paramDid]
+            numSubDids = len(selectedDid.subTypes)
 
-            if (type(selectedDid) == open3e.Open3Ecodecs.O3EComplexType): #DID is complex
-                numSubDids = len(selectedDid.subTypes)
-
-                if paramSubDid == -1: #no sub-DID defined means read whole DID
-                     return self._readByDid(paramDid, paramRaw)
-                
-                elif paramSubDid >= 0 and paramSubDid < numSubDids: #sub-DID index is valid which means read only sub-DID
-                    selectedSubDid = selectedDid.subTypes[paramSubDid]
-                    nameSelectedSubDid = selectedSubDid.id
-
-                    out1 = self._readByDid(paramDid,paramRaw)
-
-                    if paramRaw: #if raw reading is activated the result is a hex string
-                        lenSubDid = selectedSubDid.string_len
-                        hexSubStringStartIndex = 0
-                        hexSubStringEndIndex = hexSubStringStartIndex + lenSubDid*2
-
-                        for indexSubDid in range(numSubDids):
-                            if (indexSubDid == paramSubDid):
-                                break
-                            else:
-                                lenCurrentSubDid = selectedDid.subTypes[indexSubDid].string_len
-                                hexSubStringStartIndex += lenCurrentSubDid*2
-                                hexSubStringEndIndex += lenCurrentSubDid*2
-
-                        hexSubString = out1[hexSubStringStartIndex:hexSubStringEndIndex]
-
-                        return hexSubString, nameSelectedSubDid
-                    else:
-                        return out1[nameSelectedSubDid], nameSelectedSubDid
-                    
-                else: #sub-DID index undefined
-                    raise NotImplementedError("Sub-DID Index " + str(paramSubDid) + "is not defined.")
-                
-            else: #DID is not complex
-                return self._readByDid(paramDid, paramRaw)
+            if paramSubDid == -1: #no sub-DID defined means read whole DID
+                    return self._readByDid(paramDid, paramRaw)
             
-        else: #DID is not in DID list so decoding is unknown. Force raw output
-            return self._readPure(paramDid)
+            elif paramSubDid >= 0 and paramSubDid < numSubDids: #sub-DID index is valid which means read only sub-DID
+                selectedSubDid = selectedDid.subTypes[paramSubDid]
+                nameSelectedSubDid = selectedSubDid.id
+
+                out1 = self._readByDid(paramDid,paramRaw)
+
+                if paramRaw: #if raw reading is activated the result is a hex string
+                    lenSubDid = selectedSubDid.string_len
+                    hexSubStringStartIndex = 0
+                    hexSubStringEndIndex = hexSubStringStartIndex + lenSubDid*2
+
+                    for indexSubDid in range(numSubDids):
+                        if (indexSubDid == paramSubDid):
+                            break
+                        else:
+                            lenCurrentSubDid = selectedDid.subTypes[indexSubDid].string_len
+                            hexSubStringStartIndex += lenCurrentSubDid*2
+                            hexSubStringEndIndex += lenCurrentSubDid*2
+
+                    hexSubString = out1[hexSubStringStartIndex:hexSubStringEndIndex]
+
+                    return hexSubString, nameSelectedSubDid
+                else:
+                    return out1[nameSelectedSubDid], nameSelectedSubDid
+                
+            else: #sub-DID index undefined
+                raise NotImplementedError("Sub-DID Index " + str(paramSubDid) + "is not defined.")
+                
+        else: #DID is not in DID list or is nor complex. Forward to simple DID logic.
+            return self._readByDid(paramDid, paramRaw)
 
     def writeDataByIdentifier(self, paramDid:int, paramValue:any, paramSubDid:int=-1, paramRaw:bool=False, paramCheckAfterWrite:bool=False, paramService77:bool=False, paramSimulateOnly=False, paramVerbose:bool=False):
         if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known
             selectedDid = self.dataIdentifiers[paramDid]
-            if (type(selectedDid) == open3e.Open3Ecodecs.O3EComplexType): #DID is complex
+            if (type(selectedDid) == onebase.core.codecs.CodecComplexType): #DID is complex
                 # Step 1: Read raw data of complete complex DID as string
                 numSubDids = len(selectedDid.subTypes)
-                rawDidDataString, didName = self.readGenericDid(paramDid=paramDid, paramVerbose=paramVerbose, paramRaw=True)
+                rawDidDataString = self.readDataByIdentifier(paramDid=paramDid, paramVerbose=paramVerbose, paramRaw=True)
 
                 # Step 2: Find sub-DID bytes that need to be modified in DID
                 bytesProcessed = 0
@@ -198,7 +185,6 @@ class ECUConnection():
                     bytesProcessed += lenSubDid
 
                 # Step 3: Modify bytes in raw complete DID data
-                open3e.Open3Ecodecs.flag_rawmode = paramRaw
                 encodedData = matchingSubDid.encode(paramValue)
                 encodedDataHexString = encodedData.hex()
                 
