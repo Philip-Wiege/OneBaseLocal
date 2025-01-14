@@ -1,9 +1,9 @@
 {
     "396":
     {
-      "codec": "O3EInt16",
-      "len": 2,
-      "id": "DomesticHotWaterTemperatureSetpoint",
+      "codec": "CodecInt16",
+      "numBytes": 2,
+      "name": "DomesticHotWaterTemperatureSetpoint",
       "args":
       {
         "scale": 10.0,
@@ -13,15 +13,15 @@
     },
     "424":
     {
-      "codec": "O3EComplexType",
-      "len": 9,
-      "id": "MixerOneCircuitRoomTemperatureSetpoint",
+      "codec": "CodecComplexType",
+      "numBytes": 9,
+      "name": "MixerOneCircuitRoomTemperatureSetpoint",
       "args": {
         "subTypes": [
           {
-            "codec": "O3EInt16",
-            "len": 2,
-            "id": "Comfort",
+            "codec": "CodecInt16",
+            "numBytes": 2,
+            "name": "Comfort",
             "args": {
               "scale": 10.0,
               "signed": true,
@@ -29,9 +29,9 @@
             }
           },
           {
-            "codec": "O3EInt16",
-            "len": 2,
-            "id": "Standard",
+            "codec": "CodecInt16",
+            "numBytes": 2,
+            "name": "Standard",
             "args": {
               "scale": 10.0,
               "signed": true,
@@ -39,9 +39,9 @@
             }
           },
           {
-            "codec": "O3EInt16",
-            "len": 2,
-            "id": "Reduced",
+            "codec": "CodecInt16",
+            "numBytes": 2,
+            "name": "Reduced",
             "args": {
               "scale": 10.0,
               "signed": true,
@@ -49,15 +49,15 @@
             }
           },
           {
-            "codec": "RawCodec",
-            "len": 2,
-            "id": "Unknown2",
+            "codec": "CodecRaw",
+            "numBytes": 2,
+            "name": "Unknown2",
             "args": {}
           },
           {
-            "codec": "O3EByteVal",
-            "len": 1,
-            "id": "Unknown1",
+            "codec": "CodecByte",
+            "numBytes": 1,
+            "name": "Unknown1",
             "args": {
               "offset": 0
             }
