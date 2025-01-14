@@ -33,21 +33,17 @@ def import_path(path):
     return module
 
 class ECUConnection():
-    def __init__(self, paramTXAddress:int=0x680, paramRXAddress:int=None, paramDoIPAddress:str=None, can:str='can0', dev=None):
+    def __init__(self, paramTXAddress:int=0x680, paramRXAddress:int=None, paramDoIPAddress:str=None, can:str='can0', paramFilepathDIDList:str=""):
 
         self.tx = paramTXAddress
         if paramRXAddress == None:
             self.rx = paramTXAddress + 0x10
         else:
             self.rx = paramRXAddress
-        self.dev = dev  # not necessary
-        self.numdps = 0
 
-        # load general datapoints table from open3e.Open3Edatapoints.py
-        self.dataIdentifiers = dict()         
+        self.dataIdentifiers = self._loadDIDFile(paramFilePath=paramFilepathDIDList)       
 
-
-        # select CAN / DoIP ~~~~~~~~~~~~~~~~~~
+        # select CAN / DoIP
         if(paramDoIPAddress != None):
             conn = DoIPClientUDSConnector(DoIPClient(paramDoIPAddress, self.tx))
         else:
@@ -87,6 +83,9 @@ class ECUConnection():
         # run uds client
         self.uds_client = OneBaseUDSClient(conn, config=config)
         self.uds_client.open()
+
+    def _loadDIDFile(self, paramFilepath:str):
+        return dict()
 
     def _readByDid(self, did:int, raw:bool=False):
         if(did in self.dataIdentifiers): 

@@ -1,0 +1,68 @@
+{
+    "396":
+    {
+      "codec": "O3EInt16",
+      "len": 2,
+      "id": "DomesticHotWaterTemperatureSetpoint",
+      "args":
+      {
+        "scale": 10.0,
+        "signed": true,
+        "offset": 0
+      }
+    },
+    "424":
+    {
+      "codec": "O3EComplexType",
+      "len": 9,
+      "id": "MixerOneCircuitRoomTemperatureSetpoint",
+      "args": {
+        "subTypes": [
+          {
+            "codec": "O3EInt16",
+            "len": 2,
+            "id": "Comfort",
+            "args": {
+              "scale": 10.0,
+              "signed": true,
+              "offset": 0
+            }
+          },
+          {
+            "codec": "O3EInt16",
+            "len": 2,
+            "id": "Standard",
+            "args": {
+              "scale": 10.0,
+              "signed": true,
+              "offset": 0
+            }
+          },
+          {
+            "codec": "O3EInt16",
+            "len": 2,
+            "id": "Reduced",
+            "args": {
+              "scale": 10.0,
+              "signed": true,
+              "offset": 0
+            }
+          },
+          {
+            "codec": "RawCodec",
+            "len": 2,
+            "id": "Unknown2",
+            "args": {}
+          },
+          {
+            "codec": "O3EByteVal",
+            "len": 1,
+            "id": "Unknown1",
+            "args": {
+              "offset": 0
+            }
+          }
+        ]
+      }
+    }
+}
