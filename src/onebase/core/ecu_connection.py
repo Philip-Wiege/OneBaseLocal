@@ -9,6 +9,7 @@ from udsoncan.services import *
 from can.interface import Bus
 from udsoncan.connections import PythonIsoTpConnection
 from can.interfaces.socketcan import SocketcanBus
+from can.interfaces.slcan import slcanBus
 import isotp
 
 import importlib
@@ -66,7 +67,8 @@ class ECUConnection():
                 'rate_limit_window_size': 0.2,          # Ignored when rate_limit_enable=False. Sets the averaging window size for bitrate calculation when rate_limit_enable=True
                 'listen_mode': False                    # Does not use the listen_mode which prevent transmission.
             }
-            bus = SocketcanBus(channel=can, bitrate=250000)                                     # Link Layer (CAN protocol)
+            #bus = SocketcanBus(channel=can, bitrate=250000)                                     # Link Layer (CAN protocol)
+            bus = slcanBus("COM3")
             tp_addr = isotp.Address(isotp.AddressingMode.Normal_11bits, txid=self.tx, rxid=self.rx) # Network layer addressing scheme
             stack = isotp.CanStack(bus=bus, address=tp_addr, params=isotp_params)               # Network/Transport layer (IsoTP protocol)
             stack.set_sleep_timing(0.01, 0.01)                                                  # Balancing speed and load
