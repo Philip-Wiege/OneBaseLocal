@@ -116,11 +116,13 @@ class ECUConnection():
 
     def _readByDid(self, did:int, raw:bool=False, paramVerbose:bool=False):
         if(did in self.dataIdentifiers): 
+            print(8)
             if paramVerbose:
                 print("DID not in DID Dictionary")
             response = self.uds_client.read_data_by_identifier([did])
             return response.service_data.values[did]
         else:
+            print(9)
             request = udsoncan.Request(service=udsoncan.services.ReadDataByIdentifier,data=(did).to_bytes(2, byteorder='big'))
             response = self.uds_client.send_request(request)
 
@@ -137,19 +139,23 @@ class ECUConnection():
     def readDataByIdentifier(self, paramDid:int, paramSubDid:int=-1, paramRaw:bool=False, paramVerbose:bool=False):
 
         if(paramDid in self.dataIdentifiers and type(selectedDid) == onebase.core.codecs.CodecComplexType): #DID is in DID list so decoding is known and DID is complex
+            print(1)
             selectedDid = self.dataIdentifiers[paramDid]
             numSubDids = len(selectedDid.subTypes)
 
             if paramSubDid == -1: #no sub-DID defined means read whole DID
-                    return self._readByDid(paramDid,paramRaw, paramVerbose)
+                print(2)
+                return self._readByDid(paramDid,paramRaw, paramVerbose)
             
             elif paramSubDid >= 0 and paramSubDid < numSubDids: #sub-DID index is valid which means read only sub-DID
+                print(3)
                 selectedSubDid = selectedDid.subTypes[paramSubDid]
                 nameSelectedSubDid = selectedSubDid.id
 
                 out1 = self._readByDid(paramDid,paramRaw, paramVerbose)
 
                 if paramRaw: #if raw reading is activated the result is a hex string
+                    print(4)
                     lenSubDid = selectedSubDid.string_len
                     hexSubStringStartIndex = 0
                     hexSubStringEndIndex = hexSubStringStartIndex + lenSubDid*2
@@ -166,12 +172,15 @@ class ECUConnection():
 
                     return hexSubString, nameSelectedSubDid
                 else:
+                    print(5)
                     return out1[nameSelectedSubDid], nameSelectedSubDid
                 
             else: #sub-DID index undefined
+                print(6)
                 raise NotImplementedError("Sub-DID Index " + str(paramSubDid) + "is not defined.")
                 
         else: #DID is not in DID list or is nor complex. Forward to simple DID logic.
+            print(7)
             return self._readByDid(paramDid,paramRaw, paramVerbose)
 
     def writeDataByIdentifier(self, paramDid:int, paramValue:any, paramSubDid:int=-1, paramRaw:bool=False, paramCheckAfterWrite:bool=False, paramService77:bool=False, paramSimulateOnly=False, paramVerbose:bool=False):
