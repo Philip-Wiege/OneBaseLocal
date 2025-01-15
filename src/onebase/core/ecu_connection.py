@@ -17,6 +17,7 @@ import binascii
 import os
 import sys
 import time
+import json
 
 import onebase.core.codecs
 from onebase.core.codecs import *
@@ -86,8 +87,32 @@ class ECUConnection():
         self.uds_client = OneBaseUDSClient(conn, config=config)
         self.uds_client.open()
 
-    def _loadDIDFile(self, paramFilepath:str):
-        return dict()
+    def _loadDIDFile(self, paramFilePath:str):
+        with open(paramFilePath) as json_file:
+            data = json.load(json_file)
+            
+
+        didDictionary = dict()
+            
+        for did in data:
+            print(data[did]["name"])
+            
+            codec = data[did]["codec"]
+            name = data[did]["name"]
+            numBytes = data[did]["numBytes"]
+            
+            if data[did]["codec"] == "CodecInt16":
+                print("CodecInt16 found")
+                scale = data[did]["args"]["scale"]
+                signed = data[did]["args"]["signed"]
+                offset = data[did]["args"]["offset"]
+
+                codecInstance = CodecInt16(paramNumBytes= numBytes, paramDIDName=name, paramSigned=signed, paramScale=scale, paramOffset=offset)
+                
+                didDictionary[did] = codecInstance
+
+
+        return didDictionary
 
     def _readByDid(self, did:int, raw:bool=False):
         if(did in self.dataIdentifiers): 
