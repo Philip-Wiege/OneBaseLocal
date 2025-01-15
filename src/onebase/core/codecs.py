@@ -23,6 +23,9 @@ class CodecRaw(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecInt(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName:str, paramByteWidth: int, paramByteOrder="little", paramScale: float = 1.0, paramOffset: int = 0, paramSigned=False):
@@ -58,6 +61,9 @@ class CodecInt(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecInt8(CodecInt):
     def __init__(self, paramNumBytes:int, paramDIDName:str, paramByteOrder="little", paramScale:float = 1.0, paramOffset:int = 0, paramSigned=False):
@@ -106,6 +112,9 @@ class CodecBool(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecUTF8(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str, paramOffset: int = 0):
@@ -145,6 +154,9 @@ class CodecUTF8(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecHardwareSoftwareVersion(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str):
@@ -170,6 +182,9 @@ class CodecHardwareSoftwareVersion(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecMACAddress(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str):
@@ -195,6 +210,9 @@ class CodecMACAddress(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecIPAddress(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str):
@@ -220,6 +238,9 @@ class CodecIPAddress(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecSDate(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str):
@@ -241,6 +262,9 @@ class CodecSDate(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecDateTime(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str, timeformat: str="VM"):
@@ -277,6 +301,9 @@ class CodecDateTime(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecSTime(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str):
@@ -304,6 +331,9 @@ class CodecSTime(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecUTC(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str, offset: int = 0):
@@ -327,6 +357,9 @@ class CodecUTC(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecEnumeration(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str, paramEnumName:str):
@@ -367,6 +400,9 @@ class CodecEnumeration(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
        
 class CodecList(udsoncan.DidCodec):
     def __init__(self, paramNumBytes: int, paramDIDName: str, paramListSubCodecs: list, paramArrayLength: int=0):
@@ -435,6 +471,9 @@ class CodecList(udsoncan.DidCodec):
 
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
 
 class CodecComplexType(udsoncan.DidCodec):
     def __init__(self, paramNumBytes:int, paramDIDName:str, paramListSubCodecs : list):
@@ -474,3 +513,6 @@ class CodecComplexType(udsoncan.DidCodec):
     
     def getNumBytes(self) -> int:
         return self._numBytes
+    
+    def __len__(self) -> int:
+        return self.getNumBytes()
