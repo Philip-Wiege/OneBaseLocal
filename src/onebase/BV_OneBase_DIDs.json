@@ -10,59 +10,5 @@
         "signed": true,
         "offset": 0
       }
-    },
-    "424":
-    {
-      "codec": "CodecComplexType",
-      "numBytes": 9,
-      "name": "MixerOneCircuitRoomTemperatureSetpoint",
-      "args": {
-        "subTypes": [
-          {
-            "codec": "CodecInt16",
-            "numBytes": 2,
-            "name": "Comfort",
-            "args": {
-              "scale": 10.0,
-              "signed": true,
-              "offset": 0
-            }
-          },
-          {
-            "codec": "CodecInt16",
-            "numBytes": 2,
-            "name": "Standard",
-            "args": {
-              "scale": 10.0,
-              "signed": true,
-              "offset": 0
-            }
-          },
-          {
-            "codec": "CodecInt16",
-            "numBytes": 2,
-            "name": "Reduced",
-            "args": {
-              "scale": 10.0,
-              "signed": true,
-              "offset": 0
-            }
-          },
-          {
-            "codec": "CodecRaw",
-            "numBytes": 2,
-            "name": "Unknown2",
-            "args": {}
-          },
-          {
-            "codec": "CodecByte",
-            "numBytes": 1,
-            "name": "Unknown1",
-            "args": {
-              "offset": 0
-            }
-          }
-        ]
-      }
     }
 }
