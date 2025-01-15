@@ -109,13 +109,13 @@ class ECUConnection():
 
                 codecInstance = CodecInt16(paramNumBytes= numBytes, paramDIDName=name, paramSigned=signed, paramScale=scale, paramOffset=offset)
                 
-                didDictionary[did] = codecInstance
+                didDictionary[int(did)] = codecInstance
 
 
         return didDictionary
 
     def _readByDid(self, did:int, raw:bool=False, paramVerbose:bool=False):
-        if(did in self.dataIdentifiers): 
+        if(did in self.dataIdentifiers):
             print(8)
             if paramVerbose:
                 print("DID not in DID Dictionary")
@@ -179,7 +179,7 @@ class ECUConnection():
                 print(6)
                 raise NotImplementedError("Sub-DID Index " + str(paramSubDid) + "is not defined.")
                 
-        else: #DID is not in DID list or is nor complex. Forward to simple DID logic.
+        else: #DID is not in DID list or is not complex. Forward to simple DID logic.
             print(7)
             return self._readByDid(paramDid,paramRaw, paramVerbose)
 
