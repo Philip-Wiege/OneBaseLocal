@@ -138,48 +138,52 @@ class ECUConnection():
     
     def readDataByIdentifier(self, paramDid:int, paramSubDid:int=-1, paramRaw:bool=False, paramVerbose:bool=False):
 
-        if(paramDid in self.dataIdentifiers and type(selectedDid) == onebase.core.codecs.CodecComplexType): #DID is in DID list so decoding is known and DID is complex
+        if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known 
             print(1)
             selectedDid = self.dataIdentifiers[paramDid]
-            numSubDids = len(selectedDid.subTypes)
 
-            if paramSubDid == -1: #no sub-DID defined means read whole DID
-                print(2)
+            if type(selectedDid) == onebase.core.codecs.CodecComplexType:# DID is complex
+
+                numSubDids = len(selectedDid.subTypes)
+
+                if paramSubDid == -1: #no sub-DID defined means read whole DID
+                    print(2)
+                    return self._readByDid(paramDid,paramRaw, paramVerbose)
+                
+                elif paramSubDid >= 0 and paramSubDid < numSubDids: #sub-DID index is valid which means read only sub-DID
+                    print(3)
+                    selectedSubDid = selectedDid.subTypes[paramSubDid]
+                    nameSelectedSubDid = selectedSubDid.id
+
+                    out1 = self._readByDid(paramDid,paramRaw, paramVerbose)
+
+                    if paramRaw: #if raw reading is activated the result is a hex string
+                        print(4)
+                        lenSubDid = selectedSubDid.string_len
+                        hexSubStringStartIndex = 0
+                        hexSubStringEndIndex = hexSubStringStartIndex + lenSubDid*2
+
+                        for indexSubDid in range(numSubDids):
+                            if (indexSubDid == paramSubDid):
+                                break
+                            else:
+                                lenCurrentSubDid = selectedDid.subTypes[indexSubDid].string_len
+                                hexSubStringStartIndex += lenCurrentSubDid*2
+                                hexSubStringEndIndex += lenCurrentSubDid*2
+
+                        hexSubString = out1[hexSubStringStartIndex:hexSubStringEndIndex]
+
+                        return hexSubString, nameSelectedSubDid
+                    else:
+                        print(5)
+                        return out1[nameSelectedSubDid], nameSelectedSubDid
+                    
+                else: #sub-DID index undefined
+                    print(6)
+                    raise NotImplementedError("Sub-DID Index " + str(paramSubDid) + "is not defined.")
+            else: # DID is not complex
                 return self._readByDid(paramDid,paramRaw, paramVerbose)
-            
-            elif paramSubDid >= 0 and paramSubDid < numSubDids: #sub-DID index is valid which means read only sub-DID
-                print(3)
-                selectedSubDid = selectedDid.subTypes[paramSubDid]
-                nameSelectedSubDid = selectedSubDid.id
-
-                out1 = self._readByDid(paramDid,paramRaw, paramVerbose)
-
-                if paramRaw: #if raw reading is activated the result is a hex string
-                    print(4)
-                    lenSubDid = selectedSubDid.string_len
-                    hexSubStringStartIndex = 0
-                    hexSubStringEndIndex = hexSubStringStartIndex + lenSubDid*2
-
-                    for indexSubDid in range(numSubDids):
-                        if (indexSubDid == paramSubDid):
-                            break
-                        else:
-                            lenCurrentSubDid = selectedDid.subTypes[indexSubDid].string_len
-                            hexSubStringStartIndex += lenCurrentSubDid*2
-                            hexSubStringEndIndex += lenCurrentSubDid*2
-
-                    hexSubString = out1[hexSubStringStartIndex:hexSubStringEndIndex]
-
-                    return hexSubString, nameSelectedSubDid
-                else:
-                    print(5)
-                    return out1[nameSelectedSubDid], nameSelectedSubDid
-                
-            else: #sub-DID index undefined
-                print(6)
-                raise NotImplementedError("Sub-DID Index " + str(paramSubDid) + "is not defined.")
-                
-        else: #DID is not in DID list or is not complex. Forward to simple DID logic.
+        else: #DID is not in DID list 
             print(7)
             return self._readByDid(paramDid,paramRaw, paramVerbose)
 
