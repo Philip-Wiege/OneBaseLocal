@@ -114,8 +114,10 @@ class ECUConnection():
 
         return didDictionary
 
-    def _readByDid(self, did:int, raw:bool=False):
+    def _readByDid(self, did:int, raw:bool=False, paramVerbose:bool=False):
         if(did in self.dataIdentifiers): 
+            if paramVerbose:
+                print("DID not in DID Dictionary")
             response = self.uds_client.read_data_by_identifier([did])
             return response.service_data.values[did]
         else:
@@ -127,7 +129,7 @@ class ECUConnection():
             else:
                 return f"negative response, {response.code}:{response.invalid_reason}"
     
-    def _writeByDid(self, did:int, val, raw:bool, useService77=False):
+    def _writeByDid(self, did:int, val, raw:bool, useService77=False, paramVerbose:bool=False):
         response = self.uds_client.write_data_by_identifier(did, val, useService77)
         succ = (response.valid & response.positive)
         return succ, response.code
@@ -139,13 +141,13 @@ class ECUConnection():
             numSubDids = len(selectedDid.subTypes)
 
             if paramSubDid == -1: #no sub-DID defined means read whole DID
-                    return self._readByDid(paramDid, paramRaw)
+                    return self._readByDid(paramDid,paramRaw, paramVerbose)
             
             elif paramSubDid >= 0 and paramSubDid < numSubDids: #sub-DID index is valid which means read only sub-DID
                 selectedSubDid = selectedDid.subTypes[paramSubDid]
                 nameSelectedSubDid = selectedSubDid.id
 
-                out1 = self._readByDid(paramDid,paramRaw)
+                out1 = self._readByDid(paramDid,paramRaw, paramVerbose)
 
                 if paramRaw: #if raw reading is activated the result is a hex string
                     lenSubDid = selectedSubDid.string_len
@@ -170,7 +172,7 @@ class ECUConnection():
                 raise NotImplementedError("Sub-DID Index " + str(paramSubDid) + "is not defined.")
                 
         else: #DID is not in DID list or is nor complex. Forward to simple DID logic.
-            return self._readByDid(paramDid, paramRaw)
+            return self._readByDid(paramDid,paramRaw, paramVerbose)
 
     def writeDataByIdentifier(self, paramDid:int, paramValue:any, paramSubDid:int=-1, paramRaw:bool=False, paramCheckAfterWrite:bool=False, paramService77:bool=False, paramSimulateOnly=False, paramVerbose:bool=False):
         if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known
