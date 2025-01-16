@@ -132,9 +132,9 @@ class ECUConnection():
         config = dict(udsoncan.configs.default_client_config)
         config['data_identifiers'] = self.dataIdentifiers
         # increase default timeout
-        config['request_timeout'] = 20
-        config['p2_timeout'] = 20
-        config['p2_star_timeout'] = 20
+        config['request_timeout'] = 1 #seconds
+        config['p2_timeout'] = 1 #seconds
+        config['p2_star_timeout'] = 1 #seconds
         
         # run uds client
         self.uds_client = OneBaseUDSClient(conn, config=config)
