@@ -1,1 +1,0 @@
-dict(zip([396, 2346]], [CodecInt16(paramNumBytes=2, paramDIDName="DomesticHotWaterTemperatureSetpoint", paramSigned=True, paramScale=1.0), CodecInt8(1, paramDIDName="CompressorSpeedPercent")]]))
