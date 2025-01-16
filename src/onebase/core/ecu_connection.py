@@ -1,7 +1,6 @@
 import udsoncan
 from doipclient import DoIPClient
 from doipclient.connectors import DoIPClientUDSConnector
-#from udsoncan.client import Client
 from onebase.uds.uds_client import OneBaseUDSClient
 from udsoncan.exceptions import *
 from udsoncan.services import *
@@ -21,18 +20,6 @@ import json
 
 import onebase.core.codecs
 from onebase.core.codecs import *
-
-# import arbitrary python files as modules
-def import_path(path):
-    module_name = os.path.basename(path).replace('-', '_').replace('.py', '')
-    spec = importlib.util.spec_from_loader(
-        module_name,
-        importlib.machinery.SourceFileLoader(module_name, path)
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    sys.modules[module_name] = module
-    return module
 
 class ECUConnection():
     def __init__(self, paramTXAddress:int=0x680, paramRXAddress:int=None, paramConnectionType:str=None, paramConnectionInterface:str=None, paramFilepathDIDList:str=""):
@@ -141,41 +128,40 @@ class ECUConnection():
         self.uds_client.open()
 
     def _loadDIDFile(self, paramFilePath:str):
-        with open(paramFilePath) as json_file:
-            data = json.load(json_file)
-            
-
         didDictionary = dict()
-            
-        for did in data:
-            print(data[did]["name"])
-            
-            codec = data[did]["codec"]
-            name = data[did]["name"]
-            numBytes = data[did]["numBytes"]
-            
-            if data[did]["codec"] == "CodecInt16":
-                print("CodecInt16 found")
-                scale = data[did]["args"]["scale"]
-                signed = data[did]["args"]["signed"]
-                offset = data[did]["args"]["offset"]
 
-                codecInstance = CodecInt16(paramNumBytes= numBytes, paramDIDName=name, paramSigned=signed, paramScale=scale, paramOffset=offset)
+        if (paramFilePath  == "" or paramFilePath == None):
+            return didDictionary
+        else:
+            with open(paramFilePath) as json_file:
+                data = json.load(json_file)
+  
+            for did in data:
+                print(data[did]["name"])
                 
-                didDictionary[int(did)] = codecInstance
+                codec = data[did]["codec"]
+                name = data[did]["name"]
+                numBytes = data[did]["numBytes"]
+                
+                if data[did]["codec"] == "CodecInt16":
+                    print("CodecInt16 found")
+                    scale = data[did]["args"]["scale"]
+                    signed = data[did]["args"]["signed"]
+                    offset = data[did]["args"]["offset"]
 
+                    codecInstance = CodecInt16(paramNumBytes= numBytes, paramDIDName=name, paramSigned=signed, paramScale=scale, paramOffset=offset)
+                    
+                    didDictionary[int(did)] = codecInstance
 
-        return didDictionary
+            return didDictionary
 
     def _readByDid(self, did:int, raw:bool=False, paramVerbose:bool=False):
         if(did in self.dataIdentifiers):
-            print(8)
             if paramVerbose:
                 print("DID not in DID Dictionary")
             response = self.uds_client.read_data_by_identifier([did])
             return response.service_data.values[did]
         else:
-            print(9)
             request = udsoncan.Request(service=udsoncan.services.ReadDataByIdentifier,data=(did).to_bytes(2, byteorder='big'))
             response = self.uds_client.send_request(request)
 
@@ -191,8 +177,7 @@ class ECUConnection():
     
     def readDataByIdentifier(self, paramDid:int, paramSubDid:int=-1, paramRaw:bool=False, paramVerbose:bool=False):
 
-        if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known 
-            print(1)
+        if(paramDid in self.dataIdentifiers): #DID is in DID list so decoding is known
             selectedDid = self.dataIdentifiers[paramDid]
 
             if type(selectedDid) == onebase.core.codecs.CodecComplexType:# DID is complex
@@ -200,18 +185,15 @@ class ECUConnection():
                 numSubDids = len(selectedDid.subTypes)
 
                 if paramSubDid == -1: #no sub-DID defined means read whole DID
-                    print(2)
                     return self._readByDid(paramDid,paramRaw, paramVerbose)
                 
                 elif paramSubDid >= 0 and paramSubDid < numSubDids: #sub-DID index is valid which means read only sub-DID
-                    print(3)
                     selectedSubDid = selectedDid.subTypes[paramSubDid]
                     nameSelectedSubDid = selectedSubDid.id
 
                     out1 = self._readByDid(paramDid,paramRaw, paramVerbose)
 
                     if paramRaw: #if raw reading is activated the result is a hex string
-                        print(4)
                         lenSubDid = selectedSubDid.string_len
                         hexSubStringStartIndex = 0
                         hexSubStringEndIndex = hexSubStringStartIndex + lenSubDid*2
@@ -228,16 +210,13 @@ class ECUConnection():
 
                         return hexSubString, nameSelectedSubDid
                     else:
-                        print(5)
                         return out1[nameSelectedSubDid], nameSelectedSubDid
                     
                 else: #sub-DID index undefined
-                    print(6)
                     raise NotImplementedError("Sub-DID Index " + str(paramSubDid) + "is not defined.")
             else: # DID is not complex
                 return self._readByDid(paramDid,paramRaw, paramVerbose)
-        else: #DID is not in DID list 
-            print(7)
+        else: #DID is not in DID list
             return self._readByDid(paramDid,paramRaw, paramVerbose)
 
     def writeDataByIdentifier(self, paramDid:int, paramValue:any, paramSubDid:int=-1, paramRaw:bool=False, paramCheckAfterWrite:bool=False, paramService77:bool=False, paramSimulateOnly=False, paramVerbose:bool=False):
