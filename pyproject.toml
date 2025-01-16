@@ -29,7 +29,7 @@ namespaces = true
 # PEP 621 https://peps.python.org/pep-0621/
 [project]
 name = "onebase"
-version = "0.1.33"
+version = "0.1.34"
 # for automated versioning by pypa/setuptools_scm. see https://peps.python.org/pep-0621/#dynamic
 # dynamic = ["version"]
 description = "A python package for local communication with Viessmann OneBase devices over CAN, Ethernet or WiFi."
@@ -48,6 +48,7 @@ dependencies = [
   "python-can",
   "can-isotp>=2.0.2",
   "paho-mqtt>=2.0.0"
+  "pyserial>=3.5"
 ]
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "black==21.10b0"]
