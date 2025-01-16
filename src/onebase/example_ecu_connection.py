@@ -9,5 +9,8 @@ InstanceECUConnection680 = ECUConnection(paramTXAddress=0x680, paramRXAddress=0x
 # SLCAN: MacOS
 InstanceECUConnection680 = ECUConnection(paramTXAddress=0x680, paramRXAddress=0x690, paramConnectionType="SLCAN", paramConnectionInterface="/dev/tty.usbmodem2085309C53301", paramFilepathDIDList="BV_OneBase_DIDs.json")
 
+# SLCAN Remote Telnet: Linux, Windows, MacOS
+InstanceECUConnection680 = ECUConnection(paramTXAddress=0x680, paramRXAddress=0x690, paramConnectionType="Telnet", paramConnectionInterface="10.0.1.137:5000", paramFilepathDIDList="BV_OneBase_DIDs.json")
+
 # SocketCAN: Linux
 InstanceECUConnection680 = ECUConnection(paramTXAddress=0x680, paramRXAddress=0x690, paramConnectionType="SocketCAN", paramConnectionInterface="can0", paramFilepathDIDList="BV_OneBase_DIDs.json")

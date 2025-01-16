@@ -29,7 +29,7 @@ namespaces = true
 # PEP 621 https://peps.python.org/pep-0621/
 [project]
 name = "onebase"
-version = "0.1.39"
+version = "0.1.40"
 # for automated versioning by pypa/setuptools_scm. see https://peps.python.org/pep-0621/#dynamic
 # dynamic = ["version"]
 description = "A python package for local communication with Viessmann OneBase devices over CAN, Ethernet or WiFi."
