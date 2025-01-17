@@ -56,6 +56,8 @@ def convertDIDs():
             continue
         else:
             print("DID " + str(did) + " could not be converted.")
+            
+    return oneBaseDict
 
 
 def convertEnums():
