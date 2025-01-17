@@ -15,7 +15,7 @@ def convertDIDs():
 
     for didNumber in open3eDict.keys():
         did = int(didNumber)
-        codec = open3eDict[str(didNumber)]
+        codec = open3eDict[did]
         numBytes = codec.string_len
         name = codec.id
 
