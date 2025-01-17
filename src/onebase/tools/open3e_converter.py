@@ -8,25 +8,55 @@ from onebase.core.codecs import *
 
 import json
 
-def convertDIDs(self):
+def convertDIDs():
 
+    open3eDict = open3EDIDs["dids"]
     oneBaseDict = dict()
 
-    for didNumber in open3EDIDs.keys():
+    for didNumber in open3eDict.keys():
         did = int(didNumber)
-        codec = open3EDIDs[didNumber]
+        codec = open3eDict[str(didNumber)]
+        numBytes = codec.string_len
+        name = codec.id
 
-        if codec == onebase.core.codecs.CodecRaw:
-            pass
-        if codec == onebase.core.codecs.CodecInt:
-            pass
-        if codec == onebase.core.codecs.CodecInt16:
-            pass
+        if type(codec) == open3e.Open3Ecodecs.RawCodec:
+            newCodec = CodecRaw(numBytes,name)
+            oneBaseDict[did] = newCodec
+        elif codec == onebase.core.codecs.CodecInt:
+            continue
+        elif codec == onebase.core.codecs.CodecInt8:
+            continue
+        elif codec == onebase.core.codecs.CodecInt16:
+            continue
         elif codec == onebase.core.codecs.CodecInt32:
-            pass
+            continue
+        elif codec == onebase.core.codecs.CodecByte:
+            continue
+        elif codec == onebase.core.codecs.CodecBool:
+            continue
+        elif codec == onebase.core.codecs.CodecUTF8:
+            continue
+        elif codec == onebase.core.codecs.CodecHardwareSoftwareVersion:
+            continue
+        elif codec == onebase.core.codecs.CodecMACAddress:
+            continue
+        elif codec == onebase.core.codecs.CodecIPAddress:
+            continue
+        elif codec == onebase.core.codecs.CodecDateTime:
+            continue
+        elif codec == onebase.core.codecs.CodecSTime:
+            continue
+        elif codec == onebase.core.codecs.CodecUTC:
+            continue
+        elif codec == onebase.core.codecs.CodecEnumeration:
+            continue
+        elif codec == onebase.core.codecs.CodecList:
+            continue
+        elif codec == onebase.core.codecs.CodecComplexType:
+            continue
         else:
             print("DID " + str(did) + " could not be converted.")
 
 
-def convertEnums(self):
+def convertEnums():
     pass
