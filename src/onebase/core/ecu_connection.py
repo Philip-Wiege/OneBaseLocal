@@ -2,6 +2,7 @@ import udsoncan
 from doipclient import DoIPClient
 from doipclient.connectors import DoIPClientUDSConnector
 from onebase.uds.uds_client import OneBaseUDSClient
+from onebase.tools.open3e_converter import *
 from udsoncan.exceptions import *
 from udsoncan.services import *
 
@@ -31,7 +32,8 @@ class ECUConnection():
             self.rx = paramRXAddress
 
         # load DID definition file
-        self.dataIdentifiers = self._loadDIDFile(paramFilePath=paramFilepathDIDList)       
+        self.dataIdentifiers = convertDIDs()
+        #self.dataIdentifiers = self._loadDIDFile(paramFilePath=paramFilepathDIDList)       
 
         # select backend
         if(paramConnectionType == "DoIP"): # DoIP
