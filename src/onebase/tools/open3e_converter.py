@@ -22,14 +22,13 @@ def convertDIDs():
         if type(codec) == open3e.Open3Ecodecs.RawCodec:
             newCodec = CodecRaw(numBytes,name)
             oneBaseDict[did] = newCodec
-        elif codec == onebase.core.codecs.CodecInt:
-            continue
-        elif codec == onebase.core.codecs.CodecInt8:
-            continue
-        elif codec == onebase.core.codecs.CodecInt16:
-            continue
-        elif codec == onebase.core.codecs.CodecInt32:
-            continue
+        elif (codec == open3e.Open3Ecodecs.O3EInt or codec == onebase.core.codecs.CodecInt8 or codec == onebase.core.codecs.CodecInt16 or codec == onebase.core.codecs.CodecInt32):
+            byteWidth = codec.byte_width
+            scale = codec.scale
+            offset = codec.offset
+            signed = codec.signed
+            newCodec = CodecInt(numBytes,name,byteWidth,"little",scale, offset, signed)
+            oneBaseDict[did] = newCodec
         elif codec == onebase.core.codecs.CodecByte:
             continue
         elif codec == onebase.core.codecs.CodecBool:
