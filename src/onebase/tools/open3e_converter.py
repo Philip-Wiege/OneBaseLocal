@@ -22,7 +22,7 @@ def convertDIDs():
         if type(codec) == open3e.Open3Ecodecs.RawCodec:
             newCodec = CodecRaw(numBytes,name)
             oneBaseDict[did] = newCodec
-        elif (codec == open3e.Open3Ecodecs.O3EInt or codec == open3e.Open3Ecodecs.O3EInt8 or codec == open3e.Open3Ecodecs.O3EInt16 or codec == open3e.Open3Ecodecs.O3EInt32):
+        elif (type(codec) == open3e.Open3Ecodecs.O3EInt or type(codec) == open3e.Open3Ecodecs.O3EInt8 or type(codec) == open3e.Open3Ecodecs.O3EInt16 or type(codec) == open3e.Open3Ecodecs.O3EInt32):
             byteWidth = codec.byte_width
             scale = codec.scale
             offset = codec.offset
