@@ -29,10 +29,14 @@ def convertDIDs():
             signed = codec.signed
             newCodec = CodecInt(numBytes,name,byteWidth,"little",scale, offset, signed)
             oneBaseDict[did] = newCodec
-        elif codec == onebase.core.codecs.CodecByte:
-            continue
-        elif codec == onebase.core.codecs.CodecBool:
-            continue
+        elif type(codec) == open3e.Open3Ecodecs.O3EByteVal:
+            offset = codec.offset
+            newCodec = CodecByte(numBytes,name,offset)
+            oneBaseDict[did] = newCodec
+        elif type(codec) == open3e.Open3Ecodecs.O3EBool:
+            offset = codec.offset
+            newCodec = CodecBool(numBytes,name,offset)
+            oneBaseDict[did] = newCodec
         elif codec == onebase.core.codecs.CodecUTF8:
             continue
         elif codec == onebase.core.codecs.CodecHardwareSoftwareVersion:
