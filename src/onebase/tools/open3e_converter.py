@@ -11,7 +11,7 @@ import json
 def convertDIDs():
 
     open3eDict = open3EDIDs["dids"]
-    oneBaseDict = dict()
+    oneBaseDictDIDs = dict()
 
     for didNumber in open3eDict.keys():
         did = int(didNumber)
@@ -21,22 +21,22 @@ def convertDIDs():
 
         if type(codec) == open3e.Open3Ecodecs.RawCodec:
             newCodec = CodecRaw(numBytes,name)
-            oneBaseDict[did] = newCodec
+            oneBaseDictDIDs[did] = newCodec
         elif (type(codec) == open3e.Open3Ecodecs.O3EInt or type(codec) == open3e.Open3Ecodecs.O3EInt8 or type(codec) == open3e.Open3Ecodecs.O3EInt16 or type(codec) == open3e.Open3Ecodecs.O3EInt32):
             byteWidth = codec.byte_width
             scale = codec.scale
             offset = codec.offset
             signed = codec.signed
             newCodec = CodecInt(numBytes,name,byteWidth,"little",scale, offset, signed)
-            oneBaseDict[did] = newCodec
+            oneBaseDictDIDs[did] = newCodec
         elif type(codec) == open3e.Open3Ecodecs.O3EByteVal:
             offset = codec.offset
             newCodec = CodecByte(numBytes,name,offset)
-            oneBaseDict[did] = newCodec
+            oneBaseDictDIDs[did] = newCodec
         elif type(codec) == open3e.Open3Ecodecs.O3EBool:
             offset = codec.offset
             newCodec = CodecBool(numBytes,name,offset)
-            oneBaseDict[did] = newCodec
+            oneBaseDictDIDs[did] = newCodec
         elif codec == onebase.core.codecs.CodecUTF8:
             continue
         elif codec == onebase.core.codecs.CodecHardwareSoftwareVersion:
@@ -51,8 +51,10 @@ def convertDIDs():
             continue
         elif codec == onebase.core.codecs.CodecUTC:
             continue
-        elif codec == onebase.core.codecs.CodecEnumeration:
-            continue
+        elif (type(codec) == open3e.Open3Ecodecs.O3EEnum):
+            enumName = codec.listStr
+            newCodec = CodecEnumeration(numBytes, name, enumName)
+            oneBaseDictDIDs[did] = newCodec
         elif codec == onebase.core.codecs.CodecList:
             continue
         elif codec == onebase.core.codecs.CodecComplexType:
@@ -60,8 +62,10 @@ def convertDIDs():
         else:
             print("DID " + str(did) + " could not be converted.")
             
-    return oneBaseDict
-
+    return oneBaseDictDIDs
 
 def convertEnums():
-    pass
+    oneBaseDictEnums = dict()
+    oneBaseDictEnums = open3EEnums
+
+    return oneBaseDictEnums

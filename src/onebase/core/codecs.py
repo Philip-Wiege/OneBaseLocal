@@ -370,30 +370,30 @@ class CodecEnumeration(udsoncan.DidCodec):
     def encode(self, string_ascii: Any, paramRaw:bool=False) -> bytes:        
         if(paramRaw): 
             return CodecRaw.encode(self, string_ascii)
-
-        if type(string_ascii) == dict:
-            input = string_ascii['Text']
-        elif type(string_ascii) == str:
-            input = string_ascii
         else:
-            raise ValueError("Ivalid input for OEEnum")
-        for key, value in OneBaseEnums[self._enumName].items():
-            if value.lower() == input.lower():
-                string_bin = key.to_bytes(length=self._numBytes,byteorder="little",signed=False)
-                return string_bin
-        raise Exception("not found")
+            if type(string_ascii) == dict:
+                input = string_ascii['Text']
+            elif type(string_ascii) == str:
+                input = string_ascii
+            else:
+                raise ValueError("Ivalid input for Enumeration Mapping")
+            
+            for key, value in OneBaseEnums[self._enumName].items():
+                if value.lower() == input.lower():
+                    string_bin = key.to_bytes(length=self._numBytes,byteorder="little",signed=False)
+                    return string_bin
+            raise Exception("Value not found in Enumeration")
 
     def decode(self, paramEncodedBytes: bytes, paramRaw:bool=False) -> str:
         if(paramRaw): 
             return CodecRaw.decode(self, paramEncodedBytes)
-        try:
-            val = int.from_bytes(paramEncodedBytes[0:self._numBytes], byteorder="little", signed=False)
-            txt = OneBaseEnums[self._enumName][val]
-            return {"ID": val,
-                    "Text": txt }
-        except:
-            return {"ID": val,
-                    "Text": "not found in " + self._enumName}
+        else:
+            try:
+                val = int.from_bytes(paramEncodedBytes[0:self._numBytes], byteorder="little", signed=False)
+                txt = OneBaseEnums[self._enumName][val]
+                return {"Key ": val, "Value ": txt }
+            except:
+                return {"Key ": val, "Value ": "UNKNOWN"}
         
     def getCodecInfo(self):
         return ({"codec": self.__class__.__name__, "len": self._numBytes, "name": self._DIDName, "args": {"listStr":self._enumName}})
